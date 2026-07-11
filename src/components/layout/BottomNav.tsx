@@ -19,7 +19,7 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-[80px] pb-safe flex items-end select-none pointer-events-none">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 h-[80px] pb-safe flex items-end select-none pointer-events-none">
       {/* SVG Background with Center Dip */}
       <div className="absolute inset-0 -z-10 w-full h-full pointer-events-auto">
         <svg
