@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Eye, EyeOff, RefreshCw, Key, ShieldCheck, Sparkles, Check } from 'lucide-react';
+import { X, Eye, EyeOff, RefreshCw, Key, ShieldCheck, Sparkles, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import type { AIProvider, UserSettings, AIModel } from '@/types';
 import { AI_PROVIDERS, getDefaultModels } from '@/lib/ai-providers';
@@ -23,6 +23,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
   const [loading, setLoading] = useState(false);
   const [fetchingModels, setFetchingModels] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [showFreeOnly, setShowFreeOnly] = useState(false);
 
   const displayModels = models.length > 0 ? models : getDefaultModels(provider);
 
@@ -41,6 +42,39 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
       }
     }
   }, [provider, models, model, displayModels]);
+
+  const filteredModels = React.useMemo(() => {
+    let result = displayModels;
+    if (showFreeOnly) {
+      result = result.filter(m => 
+        m.id.toLowerCase().includes('free') || 
+        m.name.toLowerCase().includes('free') ||
+        // Gemini flash models which have free tier
+        (provider === 'google' && m.id.toLowerCase().includes('flash'))
+      );
+    }
+    return result;
+  }, [displayModels, showFreeOnly, provider]);
+
+  const handlePrevModel = () => {
+    if (filteredModels.length === 0) return;
+    const currentIndex = filteredModels.findIndex(m => m.id === model);
+    if (currentIndex <= 0) {
+      setModel(filteredModels[filteredModels.length - 1].id);
+    } else {
+      setModel(filteredModels[currentIndex - 1].id);
+    }
+  };
+
+  const handleNextModel = () => {
+    if (filteredModels.length === 0) return;
+    const currentIndex = filteredModels.findIndex(m => m.id === model);
+    if (currentIndex === -1 || currentIndex >= filteredModels.length - 1) {
+      setModel(filteredModels[0].id);
+    } else {
+      setModel(filteredModels[currentIndex + 1].id);
+    }
+  };
 
   const loadSettings = async () => {
     setLoading(true);
@@ -275,19 +309,76 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
           {/* Model Selection */}
           {displayModels.length > 0 ? (
             <div className="flex flex-col gap-2 animate-scale-in">
-              <label className="text-xs font-semibold text-text-secondary">{t('ai.model')}</label>
-              <select
-                id="ai-model-select"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl py-3 px-4 text-sm text-text-primary focus:outline-none focus:border-accent-purple"
-              >
-                {displayModels.map((m) => (
-                  <option key={m.id} value={m.id} className="bg-bg-secondary text-text-primary text-xs">
-                    {m.name} ({m.id})
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-text-secondary">
+                  {t('ai.model')} / Location for fetching models
+                </label>
+                {/* Arrow controllers */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handlePrevModel}
+                    disabled={filteredModels.length <= 1}
+                    className="p-1 hover:bg-secondary/40 border border-border/40 rounded text-text-secondary cursor-pointer disabled:opacity-30"
+                    title="Previous Model"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextModel}
+                    disabled={filteredModels.length <= 1}
+                    className="p-1 hover:bg-secondary/40 border border-border/40 rounded text-text-secondary cursor-pointer disabled:opacity-30"
+                    title="Next Model"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Free Filter & Helper */}
+              <div className="flex items-center justify-between bg-bg-primary/30 p-1.5 rounded-lg border border-border/20">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="free-models-only"
+                    checked={showFreeOnly}
+                    onChange={(e) => setShowFreeOnly(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-border text-accent-purple focus:ring-accent-purple cursor-pointer"
+                  />
+                  <label htmlFor="free-models-only" className="text-[11px] font-semibold text-text-secondary cursor-pointer select-none">
+                    Show Free Models Only
+                  </label>
+                </div>
+                <span className="text-[9px] text-text-muted font-bold">
+                  {filteredModels.length} models
+                </span>
+              </div>
+
+              {/* Models List Container (approx. 10 lines) */}
+              <div className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl p-1.5 h-[230px] overflow-y-auto flex flex-col gap-1">
+                {filteredModels.length > 0 ? (
+                  filteredModels.map((m) => (
+                    <button
+                      type="button"
+                      key={m.id}
+                      onClick={() => setModel(m.id)}
+                      className={`w-full text-left px-3 py-2 text-xs flex justify-between items-center transition-colors cursor-pointer rounded-xl ${
+                        model === m.id
+                          ? 'bg-accent-purple/20 text-accent-purple font-bold border-l-4 border-accent-purple'
+                          : 'text-text-primary hover:bg-secondary/40'
+                      }`}
+                    >
+                      <span className="truncate pr-2 font-semibold">{m.name}</span>
+                      <span className="text-[9px] text-text-muted font-mono truncate max-w-[150px]">{m.id}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-xs text-text-muted">
+                    No models match the filter.
+                  </div>
+                )}
+              </div>
             </div>
           ) : null}
         </div>

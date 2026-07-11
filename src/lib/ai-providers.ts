@@ -46,7 +46,7 @@ export const AI_PROVIDERS: AIProviderConfig[] = [
   {
     id: 'opencode',
     name: 'OpenCode Zen',
-    baseUrl: 'https://api.opencode.ai/v1',
+    baseUrl: 'https://console.opencode.ai/inference/openai/v1',
     modelsEndpoint: '/models',
     keyPrefix: '',
     icon: '🧘',
