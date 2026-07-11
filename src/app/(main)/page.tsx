@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { language, t, formatCurrency } = useI18n();
   const [username, setUsername] = useState('User');
+  const [aiReady, setAiReady] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -79,7 +80,7 @@ export default function DashboardPage() {
   const [showPasteDialog, setShowPasteDialog] = useState(false);
 
 
-  // Load username
+  // Load username and AI Ready status
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -88,9 +89,20 @@ export default function DashboardPage() {
         if (user) {
           const emailName = user.email?.split('@')[0] || 'User';
           setUsername(emailName);
+
+          // Fetch AI settings to check if AI is ready
+          const { data: settings } = await supabase
+            .from('user_settings')
+            .select('ai_provider, ai_model, ai_api_key_encrypted')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (settings && settings.ai_provider && settings.ai_model && settings.ai_api_key_encrypted) {
+            setAiReady(true);
+          }
         }
       } catch (err) {
-        console.error('Failed to load user:', err);
+        console.error('Failed to load user info / AI settings:', err);
       }
     };
     loadUser();
@@ -440,19 +452,27 @@ export default function DashboardPage() {
                 </span>
               </div>
               
-              {/* Gold Chip or Cash Icon / Symbol */}
-              {activeAccount.iconType === 'cash' ? (
-                <div className="w-10 h-7 rounded-md bg-emerald-400/25 border border-emerald-400/40 flex items-center justify-center text-[15px] font-bold text-emerald-300 flex-shrink-0">
-                  ฿
-                </div>
-              ) : (
-                <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden flex-shrink-0">
-                  <div className="w-full h-px bg-yellow-400/30" />
-                  <div className="w-full h-px bg-yellow-400/30" />
-                  <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
-                  <div className="w-[30%] h-full border-l border-yellow-400/30 absolute right-0 top-0" />
-                </div>
-              )}
+              {/* Gold Chip or Cash Icon / Symbol + AI Ready status */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {aiReady && (
+                  <div className="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-500/40 px-2 py-1 text-[9px] font-black text-emerald-300 select-none rounded-md shadow-sm">
+                    <Sparkles size={10} className="animate-pulse fill-emerald-300/20" />
+                    <span>AI READY</span>
+                  </div>
+                )}
+                {activeAccount.iconType === 'cash' ? (
+                  <div className="w-10 h-7 rounded-md bg-emerald-400/25 border border-emerald-400/40 flex items-center justify-center text-[15px] font-bold text-emerald-300">
+                    ฿
+                  </div>
+                ) : (
+                  <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden">
+                    <div className="w-full h-px bg-yellow-400/30" />
+                    <div className="w-full h-px bg-yellow-400/30" />
+                    <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
+                    <div className="w-[30%] h-full border-l border-yellow-400/30 absolute right-0 top-0" />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Middle section: Card number */}

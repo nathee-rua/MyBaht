@@ -599,3 +599,86 @@ export function getDefaultModels(provider: AIProvider): AIModel[] {
       return [];
   }
 }
+
+export async function generateMonthlySummary(
+  provider: AIProvider,
+  apiKey: string,
+  model: string,
+  transactions: any[],
+  language: 'th' | 'en'
+): Promise<string> {
+  const config = getProviderConfig(provider);
+
+  // Format transactions into text
+  const txListText = transactions
+    .map(
+      (tx) =>
+        `- Date: ${tx.date}, Kind: ${tx.kind}, Amount: ${tx.amount} THB, Category: ${tx.category}, Merchant: ${tx.merchant || 'N/A'}, Payment Method: ${tx.payment_method || 'cash'}, Note: ${tx.note || 'N/A'}`
+    )
+    .join('\n');
+
+  const prompt = `You are a financial advisor assistant. Analyze the user's transaction data for this month and provide a concise, friendly summary and financial insights in ${
+    language === 'th' ? 'Thai' : 'English'
+  }.
+Do NOT list all transactions. Instead, analyze:
+1. Total expenses vs total income.
+2. Spending patterns (e.g. which categories they spent the most on, unexpected high costs, etc.).
+3. Primary payment methods used (cash, bank transfer, credit card, etc.) and what it suggests about their cash flow.
+4. Actionable tips to save money next month.
+
+Keep the summary under 150 words. Do not use complex markdown formatting or HTML. Use simple bullet points if needed.
+
+Here are the transactions:
+${txListText}`;
+
+  if (provider === 'google') {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1000,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Gemini summary generation failed: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  } else {
+    const response = await fetch(`${config.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        ...(config.id === 'openrouter' && {
+          'HTTP-Referer': 'https://mybaht.app',
+          'X-Title': 'MyBaht',
+        }),
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }],
+        max_tokens: 1000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`AI summary generation failed: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+}
