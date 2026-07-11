@@ -127,6 +127,27 @@ const translations: Record<string, Record<Language, string>> = {
   'summary.month': { th: 'เดือนนี้', en: 'This Month' },
   'summary.year': { th: 'ปีนี้', en: 'This Year' },
   'summary.net': { th: 'คงเหลือ', en: 'Net' },
+  'summary.recent': { th: 'รายการล่าสุด', en: 'Recent Expenses' },
+
+  // Custom Filters
+  'filter.thisMonth': { th: 'เดือนนี้', en: 'This Month' },
+  'filter.thisWeek': { th: 'สัปดาห์นี้', en: 'This Week' },
+  'filter.today': { th: 'วันนี้', en: 'Today' },
+  'filter.allCategories': { th: 'ทุกหมวดหมู่', en: 'All Categories' },
+  'filter.allPrices': { th: 'ทุกราคา', en: 'All Prices' },
+  'filter.under500': { th: 'ต่ำกว่า ฿500', en: 'Under ฿500' },
+  'filter.500to5000': { th: '฿500 - ฿5,000', en: '฿500 - ฿5,000' },
+  'filter.over5000': { th: 'เกิน ฿5,000', en: 'Over ฿5,000' },
+
+  // Credit Card widgets
+  'card.availableBalance': { th: 'ยอดเงินคงเหลือ', en: 'Available Balance' },
+  'card.cardHolder': { th: 'เจ้าของบัตร', en: 'Card Holder' },
+  'card.cash': { th: 'เงินสด', en: 'CASH' },
+
+  // Actions
+  'action.addExpense': { th: 'เพิ่มรายจ่าย', en: 'Add Expense' },
+  'action.scanSlip': { th: 'สแกนสลิป', en: 'Scan Slip' },
+  'action.pasteText': { th: 'วางข้อความ AI', en: 'Paste Text AI' },
 
   // Days
   'day.sunday': { th: 'อาทิตย์', en: 'Sunday' },

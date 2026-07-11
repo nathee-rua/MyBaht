@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, ChevronDown, Sparkles, Plus, Camera } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { getTransactions, calculateCategoryBreakdown, createTransaction } from '@/lib/expenses';
 import type { Transaction, DateFilter, SlipAnalysisResult } from '@/types';
@@ -10,6 +10,7 @@ import DateSelector from '@/components/dashboard/DateSelector';
 import TransactionList from '@/components/dashboard/TransactionList';
 import AddTransactionDialog from '@/components/transaction/AddTransactionDialog';
 import ScanSlipDialog from '@/components/ai/ScanSlipDialog';
+import PasteTextDialog from '@/components/ai/PasteTextDialog';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -72,13 +73,10 @@ export default function DashboardPage() {
   const [selectedAccountIndex, setSelectedAccountIndex] = useState(0);
 
   // Horizontal Scrollable Filter Pills State
+  const [timeframe, setTimeframe] = useState<'month' | 'week' | 'today'>('month');
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('All Prices');
 
-  // Compute timeframe dynamically from dateFilter to avoid setState-in-effect lint warnings
-  const timeframe: 'month' | 'week' | 'today' = 
-    dateFilter === 'daily' ? 'today' : 
-    dateFilter === 'weekly' ? 'week' : 'month';
 
   // Load username
   useEffect(() => {
@@ -195,6 +193,25 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePasteSuccess = async (parsedData: any) => {
+    try {
+      await createTransaction({
+        kind: 'expense',
+        amount: Number(parsedData.amount) || 0,
+        category: parsedData.category || 'other',
+        note: parsedData.note || parsedData.merchant || 'Pasted Notification',
+        merchant: parsedData.merchant || '',
+        payment_method: parsedData.payment_method || 'cash',
+        date: parsedData.date || format(new Date(), 'yyyy-MM-dd'),
+      });
+      toast.success('Alert parsed and saved successfully!');
+      fetchTransactions();
+    } catch (err) {
+      console.error('Failed to create transaction from parsed text:', err);
+      toast.error('Failed to save parsed transaction');
+    }
+  };
+
   // Helper to calculate available balance for a specific payment method
   const getAccountBalance = (accountMethod: 'all' | 'cash' | 'bank' | 'credit_card') => {
     const acctTxs = transactions.filter((tx) => {
@@ -273,6 +290,11 @@ export default function DashboardPage() {
 
   const getGreeting = () => {
     const hours = new Date().getHours();
+    if (language === 'th') {
+      if (hours < 12) return 'สวัสดีตอนเช้า ☀️';
+      if (hours < 17) return 'สวัสดีตอนบ่าย 🌤️';
+      return 'สวัสดีตอนเย็น 🌙';
+    }
     if (hours < 12) return 'Good Morning ☀️';
     if (hours < 17) return 'Good Afternoon 🌤️';
     return 'Good Evening 🌙';
@@ -396,7 +418,7 @@ export default function DashboardPage() {
           
           {/* Active Card */}
           <div 
-            className="w-[90%] h-[176px] rounded-[24px] p-6 relative overflow-hidden flex flex-col justify-between border border-white/10 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
+            className="w-[90%] h-[176px] rounded-[24px] py-4 px-5 relative overflow-hidden flex flex-col justify-between border border-white/10 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
             style={{ 
               background: activeAccount.gradient,
             }}
@@ -407,11 +429,11 @@ export default function DashboardPage() {
 
             {/* Top section: chip, balance */}
             <div className="flex items-start justify-between">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-white/70 uppercase tracking-widest font-bold">
-                  {activeAccount.name === 'All Accounts' ? 'Available Balance' : `${activeAccount.name} Balance`}
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] text-white/70 uppercase tracking-widest font-black truncate">
+                  {activeAccount.name === 'All Accounts' ? t('card.availableBalance') : `${activeAccount.name} Balance`}
                 </span>
-                <span className="text-2xl font-black text-white mt-0.5 tracking-tight flex items-baseline gap-1">
+                <span className="text-2xl font-black text-white mt-0.5 tracking-tight flex items-baseline gap-1 truncate">
                   <span>{formatCurrency(getAccountBalance(activeAccount.method)).replace('THB', '').trim()}</span>
                   <span className="text-xs font-bold opacity-80">THB</span>
                 </span>
@@ -419,11 +441,11 @@ export default function DashboardPage() {
               
               {/* Gold Chip or Cash Icon / Symbol */}
               {activeAccount.iconType === 'cash' ? (
-                <div className="w-10 h-7 rounded-md bg-emerald-400/25 border border-emerald-400/40 flex items-center justify-center text-[15px] font-bold text-emerald-300">
+                <div className="w-10 h-7 rounded-md bg-emerald-400/25 border border-emerald-400/40 flex items-center justify-center text-[15px] font-bold text-emerald-300 flex-shrink-0">
                   ฿
                 </div>
               ) : (
-                <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden">
+                <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden flex-shrink-0">
                   <div className="w-full h-px bg-yellow-400/30" />
                   <div className="w-full h-px bg-yellow-400/30" />
                   <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
@@ -433,24 +455,24 @@ export default function DashboardPage() {
             </div>
 
             {/* Middle section: Card number */}
-            <div className="text-[15px] text-white/80 tracking-[0.22em] font-mono mt-3">
+            <div className="text-[14px] text-white/80 tracking-[0.20em] font-mono my-1 truncate">
               {activeAccount.cardNumber}
             </div>
 
             {/* Bottom section: Card holder and MasterCard brand circles */}
             <div className="flex items-end justify-between">
-              <div className="flex flex-col">
-                <span className="text-[8px] text-white/50 uppercase tracking-wider font-semibold">Card Holder</span>
-                <span className="text-xs font-bold text-white tracking-wide uppercase mt-0.5 truncate max-w-[150px]">
+              <div className="flex flex-col min-w-0 pr-2">
+                <span className="text-[8px] text-white/50 uppercase tracking-wider font-semibold truncate">{t('card.cardHolder')}</span>
+                <span className="text-xs font-bold text-white tracking-wide uppercase mt-0.5 truncate">
                   {username}
                 </span>
               </div>
               {activeAccount.iconType === 'cash' ? (
-                <span className="text-xs font-black text-white/95 bg-white/10 px-2.5 py-1 rounded-md border border-white/10">CASH</span>
+                <span className="text-[10px] font-black text-white/95 bg-white/10 px-2 py-0.5 rounded border border-white/10 flex-shrink-0">{t('card.cash')}</span>
               ) : (
-                <div className="flex items-center">
-                  <div className="w-6.5 h-6.5 rounded-full bg-red-500/85 z-10 -mr-2.5" />
-                  <div className="w-6.5 h-6.5 rounded-full bg-amber-500/85" />
+                <div className="flex items-center flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-red-500/85 z-10 -mr-2.5" />
+                  <div className="w-6 h-6 rounded-full bg-amber-500/85" />
                 </div>
               )}
             </div>
@@ -473,25 +495,56 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Action Outline Pills */}
-        <div className="flex gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-2.5 mb-6">
           <button
             type="button"
             onClick={() => {
               setEditingTx(null);
               setShowAddDialog(true);
             }}
-            className="flex-1 py-3 px-4 rounded-full border border-orange-500/35 bg-orange-500/5 hover:bg-orange-500/10 text-orange-400 text-xs font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-3.5 px-2 rounded-2xl border text-xs font-black transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
           >
-            <span className="text-sm">+</span>
-            <span>Add Expense</span>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md">
+              <Plus size={20} strokeWidth={2.5} />
+            </div>
+            <span>{t('action.addExpense')}</span>
           </button>
+
           <button
             type="button"
             onClick={() => setShowScanDialog(true)}
-            className="flex-1 py-3 px-4 rounded-full border border-orange-500/35 bg-orange-500/5 hover:bg-orange-500/10 text-orange-400 text-xs font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-3.5 px-2 rounded-2xl border text-xs font-black transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
           >
-            <span>📷</span>
-            <span>Scan Slip</span>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-md">
+              <Camera size={18} />
+            </div>
+            <span>{t('action.scanSlip')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowPasteDialog(true)}
+            className="py-3.5 px-2 rounded-2xl border text-xs font-black transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-tr from-purple-500 to-indigo-500 text-white shadow-md">
+              <Sparkles size={18} />
+            </div>
+            <span>{t('action.pasteText')}</span>
           </button>
         </div>
 
@@ -577,60 +630,76 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Horizontal Scrollable Filter Pills */}
-      <div className="px-4 mb-5 flex flex-col gap-2.5">
-        {/* Timeframe Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
-          {timeframeOptions.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => handleTimeframeChange(opt.value)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
-                timeframe === opt.value
-                  ? 'bg-[var(--color-active-pill-bg)] border-[var(--color-active-pill)] text-[var(--color-active-pill)] shadow-sm'
-                  : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+      {/* Three Dropdown Selectors */}
+      <div className="px-4 mb-6 grid grid-cols-3 gap-2.5">
+        {/* Timeframe Dropdown */}
+        <div className="relative flex items-center w-full">
+          <select
+            value={timeframe}
+            onChange={(e) => handleTimeframeChange(e.target.value as any)}
+            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full text-[11px] font-extrabold border shadow-sm focus:outline-none cursor-pointer"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            {timeframeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value} className="bg-bg-secondary text-text-primary">
+                {t(`filter.${opt.value === 'month' ? 'thisMonth' : opt.value === 'week' ? 'thisWeek' : 'today'}`)}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={12} className="absolute right-3 pointer-events-none text-accent-purple" />
         </div>
 
-        {/* Category Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
-          {categoryOptions.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
-                selectedCategory === cat
-                  ? 'bg-[var(--color-active-pill-bg)] border-[var(--color-active-pill)] text-[var(--color-active-pill)] shadow-sm'
-                  : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* Category Dropdown */}
+        <div className="relative flex items-center w-full">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full text-[11px] font-extrabold border shadow-sm focus:outline-none cursor-pointer"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            {categoryOptions.map((cat) => (
+              <option key={cat} value={cat} className="bg-bg-secondary text-text-primary">
+                {cat === 'All Categories' ? t('filter.allCategories') : t(`category.${cat.toLowerCase()}`)}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={12} className="absolute right-3 pointer-events-none text-accent-purple" />
         </div>
 
-        {/* Price Range Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
-          {priceOptions.map((price) => (
-            <button
-              key={price}
-              type="button"
-              onClick={() => setSelectedPriceRange(price)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
-                selectedPriceRange === price
-                  ? 'bg-[var(--color-active-pill-bg)] border-[var(--color-active-pill)] text-[var(--color-active-pill)] shadow-sm'
-                  : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
-              }`}
-            >
-              {price}
-            </button>
-          ))}
+        {/* Price Range Dropdown */}
+        <div className="relative flex items-center w-full">
+          <select
+            value={selectedPriceRange}
+            onChange={(e) => setSelectedPriceRange(e.target.value)}
+            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full text-[11px] font-extrabold border shadow-sm focus:outline-none cursor-pointer"
+            style={{
+              background: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            {priceOptions.map((price) => {
+              let label = price;
+              if (price === 'All Prices') label = t('filter.allPrices');
+              else if (price === 'Under ฿500') label = t('filter.under500');
+              else if (price === '฿500 - ฿5,000') label = t('filter.500to5000');
+              else if (price === 'Over ฿5,000') label = t('filter.over5000');
+              return (
+                <option key={price} value={price} className="bg-bg-secondary text-text-primary">
+                  {label}
+                </option>
+              );
+            })}
+          </select>
+          <ChevronDown size={12} className="absolute right-3 pointer-events-none text-accent-purple" />
         </div>
       </div>
 
@@ -679,6 +748,13 @@ export default function DashboardPage() {
         open={showScanDialog}
         onClose={() => setShowScanDialog(false)}
         onSuccess={handleScanSuccess}
+      />
+
+      {/* Paste Text Dialog */}
+      <PasteTextDialog
+        open={showPasteDialog}
+        onClose={() => setShowPasteDialog(false)}
+        onSuccess={handlePasteSuccess}
       />
     </div>
   );

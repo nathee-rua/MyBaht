@@ -218,14 +218,147 @@ export async function analyzeSlip(
     return {
       amount: Number(parsed.amount) || 0,
       category: parsed.category || 'other',
-      merchant: parsed.merchant || undefined,
-      note: parsed.note || undefined,
+      merchant: parsed.merchant || '',
+      note: parsed.note || '',
       date: parsed.date || new Date().toISOString().split('T')[0],
-      payment_method: parsed.payment_method || undefined,
+      payment_method: parsed.payment_method || 'cash',
     };
   } catch {
     throw new Error('Failed to parse AI response. The model did not return valid JSON.');
   }
+}
+
+// ===== Analyze SMS/Alert Text =====
+
+const TEXT_ANALYSIS_PROMPT = `You are analyzing a payment notification text, SMS, LINE Alert, or bank transaction message. Extract the following information and return ONLY valid JSON:
+{
+  "amount": <number - the total amount paid>,
+  "category": "<one of: food, transport, shopping, bills, entertainment, health, education, other>",
+  "merchant": "<store/merchant name if found in text>",
+  "note": "<brief description of the transaction>",
+  "date": "<date in YYYY-MM-DD format, use today if not visible/parseable>",
+  "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>"
+}
+
+Rules:
+- Extract the total transaction amount as a float/number.
+- Try to infer the merchant/shop name from context (e.g. "Starbucks", "7-Eleven", "Grab", "Shopee", bank transfers).
+- In Thailand, bank alerts from K-Plus, SCB Easy, LINE alerts, or SMS alerts are common. Extract date/time from the alert context.
+- If the date is not found or is in relative terms, use today's date in YYYY-MM-DD.
+- Return ONLY the JSON object, no markdown code blocks, no explanation.`;
+
+export async function analyzeText(
+  provider: AIProvider,
+  apiKey: string,
+  model: string,
+  text: string
+): Promise<SlipAnalysisResult> {
+  const config = getProviderConfig(provider);
+
+  let result: string;
+
+  if (provider === 'google') {
+    result = await analyzeTextWithGemini(apiKey, model, text);
+  } else {
+    result = await analyzeTextWithOpenAICompatible(config, apiKey, model, text);
+  }
+
+  // Parse the JSON response
+  const cleaned = result
+    .replace(/```json\s*/g, '')
+    .replace(/```\s*/g, '')
+    .trim();
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    return {
+      amount: Number(parsed.amount) || 0,
+      category: parsed.category || 'other',
+      merchant: parsed.merchant || '',
+      note: parsed.note || '',
+      date: parsed.date || new Date().toISOString().split('T')[0],
+      payment_method: parsed.payment_method || 'cash',
+    };
+  } catch {
+    throw new Error('Failed to parse AI response. The model did not return valid JSON.');
+  }
+}
+
+async function analyzeTextWithOpenAICompatible(
+  config: AIProviderConfig,
+  apiKey: string,
+  model: string,
+  text: string
+): Promise<string> {
+  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      ...(config.id === 'openrouter' && {
+        'HTTP-Referer': 'https://mybaht.app',
+        'X-Title': 'MyBaht',
+      }),
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: TEXT_ANALYSIS_PROMPT },
+            { type: 'text', text: `Here is the transaction text/SMS/alert: "${text}"` }
+          ],
+        },
+      ],
+      max_tokens: 1000,
+      temperature: 0.1,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`AI text analysis failed: ${response.status} - ${error}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+async function analyzeTextWithGemini(
+  apiKey: string,
+  model: string,
+  text: string
+): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: TEXT_ANALYSIS_PROMPT },
+              { text: `Here is the transaction text/SMS/alert: "${text}"` }
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1000,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Gemini text analysis failed: ${response.status} - ${error}`);
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 async function analyzeWithOpenAICompatible(
