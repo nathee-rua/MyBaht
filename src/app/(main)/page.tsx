@@ -631,6 +631,7 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+    </div>
 
       {/* Three Dropdown Selectors */}
       <div className="px-4 mt-6 mb-8 flex justify-center gap-2.5 w-full">
