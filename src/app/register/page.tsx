@@ -43,16 +43,21 @@ export default function RegisterPage() {
         ? username.trim()
         : `${username.trim().toLowerCase()}@mybaht.com`;
 
-      const { error } = await supabase.auth.signUp({
-        email: formattedEmail,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email: formattedEmail,
+          password,
+        }),
       });
 
-      if (error) {
-        toast.error(error.message);
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || 'Registration failed');
       } else {
         toast.success('Registration successful! Please log in.');
         router.push('/login');
