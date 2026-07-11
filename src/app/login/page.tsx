@@ -27,7 +27,7 @@ export default function LoginPage() {
       const supabase = createClient();
       const formattedEmail = username.includes('@')
         ? username.trim()
-        : `${username.trim().toLowerCase()}@mybaht.local`;
+        : `${username.trim().toLowerCase()}@mybaht.com`;
 
       const { error } = await supabase.auth.signInWithPassword({
         email: formattedEmail,

@@ -41,7 +41,7 @@ export default function RegisterPage() {
       const supabase = createClient();
       const formattedEmail = username.includes('@')
         ? username.trim()
-        : `${username.trim().toLowerCase()}@mybaht.local`;
+        : `${username.trim().toLowerCase()}@mybaht.com`;
 
       const { error } = await supabase.auth.signUp({
         email: formattedEmail,
