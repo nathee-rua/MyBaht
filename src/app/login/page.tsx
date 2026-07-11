@@ -122,10 +122,12 @@ export default function LoginPage() {
               placeholder={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+              className="w-full py-3.5 rounded-xl text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
               style={{
                 background: '#1A1530',
                 border: '1px solid #3D3660',
+                paddingLeft: '3rem',
+                paddingRight: '1rem',
               }}
             />
           </div>
@@ -139,10 +141,12 @@ export default function LoginPage() {
               placeholder={t('auth.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-12 pr-12 py-3.5 rounded-xl text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+              className="w-full py-3.5 rounded-xl text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
               style={{
                 background: '#1A1530',
                 border: '1px solid #3D3660',
+                paddingLeft: '3rem',
+                paddingRight: '3rem',
               }}
             />
             <button
