@@ -18,13 +18,16 @@ export async function POST(req: Request) {
     if (!keyToUse) {
       const { data, error } = await supabase
         .from('user_settings')
-        .select('ai_api_key_encrypted')
+        .select('ai_api_key_encrypted, ai_provider')
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
       if (!data?.ai_api_key_encrypted) {
         return new NextResponse('No API key configured', { status: 400 });
+      }
+      if (data.ai_provider !== provider) {
+        return new NextResponse('Please enter API key for this provider', { status: 400 });
       }
       keyToUse = decrypt(data.ai_api_key_encrypted);
     }

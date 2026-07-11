@@ -36,7 +36,8 @@ export async function POST(req: Request) {
         if (!targetProvider) targetProvider = settings.ai_provider;
         if (!targetModel) targetModel = settings.ai_model;
         if (!targetApiKey || isPlaceholderKey) {
-          if (settings.ai_api_key_encrypted) {
+          // Only decrypt if the target provider matches the saved provider
+          if (settings.ai_provider === targetProvider && settings.ai_api_key_encrypted) {
             targetApiKey = decrypt(settings.ai_api_key_encrypted);
           }
         }
