@@ -25,19 +25,18 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-/* ──────────────────── Color tokens (inline usage) ──────────────────── */
 const C = {
-  bgPrimary: '#0D0B1A',
-  bgSecondary: '#1A1530',
-  bgTertiary: '#2D2648',
-  accent: '#7C3AED',
-  accentLight: '#A78BFA',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#9CA3AF',
-  textMuted: '#6B7280',
-  border: '#3D3660',
-  borderSubtle: '#2D264880',
-} as const;
+  bgPrimary: 'var(--color-bg-primary)',
+  bgSecondary: 'var(--color-bg-secondary)',
+  bgTertiary: 'var(--color-bg-tertiary)',
+  accent: 'var(--color-accent-purple)',
+  accentLight: 'var(--color-accent-purple-light)',
+  textPrimary: 'var(--color-text-primary)',
+  textSecondary: 'var(--color-text-secondary)',
+  textMuted: 'var(--color-text-muted)',
+  border: 'var(--color-border)',
+  borderSubtle: 'var(--color-border-light)',
+};
 
 /* ──────────── Reusable setting row ──────────── */
 function SettingRow({

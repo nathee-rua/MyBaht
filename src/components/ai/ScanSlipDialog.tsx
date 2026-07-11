@@ -243,15 +243,15 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                 <div 
                   className="p-5 flex flex-col gap-4 animate-scale-in"
                   style={{
-                    background: '#1A1530',
-                    border: '1px solid #3D3660',
+                    background: 'var(--color-bg-secondary)',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '20px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
                   }}
                 >
                   <h3 
-                    className="text-sm font-bold flex items-center gap-1.5 border-b pb-2.5 mb-1 text-accent-purple-light"
-                    style={{ borderColor: 'rgba(61, 54, 96, 0.4)' }}
+                    className="text-sm font-bold flex items-center gap-1.5 border-b pb-2.5 mb-1 text-accent-purple"
+                    style={{ borderColor: 'var(--color-border)' }}
                   >
                     <Check size={16} />
                     <span>Parsed Transaction Details</span>
@@ -267,9 +267,9 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                       onChange={(e) => setResult({ ...result, amount: parseFloat(e.target.value) || 0 })}
                       className="w-full text-base font-bold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
                       style={{
-                        background: '#2D2648',
-                        border: '1px solid #3D3660',
-                        color: '#FFFFFF',
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
                         padding: '10px 14px',
                         borderRadius: '12px',
                       }}
@@ -285,15 +285,15 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                       onChange={(e) => setResult({ ...result, category: e.target.value as Category })}
                       className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
                       style={{
-                        background: '#2D2648',
-                        border: '1px solid #3D3660',
-                        color: '#FFFFFF',
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
                         padding: '10px 14px',
                         borderRadius: '12px',
                       }}
                     >
                       {EXPENSE_CATEGORIES.map((cat) => (
-                        <option key={cat.id} value={cat.id} className="bg-[#1A1530] text-white">
+                        <option key={cat.id} value={cat.id} className="bg-bg-secondary text-text-primary">
                           {t(`category.${cat.id}`)}
                         </option>
                       ))}
@@ -310,9 +310,9 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                       onChange={(e) => setResult({ ...result, date: e.target.value })}
                       className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
                       style={{
-                        background: '#2D2648',
-                        border: '1px solid #3D3660',
-                        color: '#FFFFFF',
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
                         padding: '10px 14px',
                         borderRadius: '12px',
                       }}
@@ -328,15 +328,15 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                       onChange={(e) => setResult({ ...result, payment_method: e.target.value as PaymentMethod })}
                       className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
                       style={{
-                        background: '#2D2648',
-                        border: '1px solid #3D3660',
-                        color: '#FFFFFF',
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
                         padding: '10px 14px',
                         borderRadius: '12px',
                       }}
                     >
                       {PAYMENT_METHODS.map((pm) => (
-                        <option key={pm.id} value={pm.id} className="bg-[#1A1530] text-white">
+                        <option key={pm.id} value={pm.id} className="bg-bg-secondary text-text-primary">
                           {t(`payment.${pm.id}`)}
                         </option>
                       ))}
@@ -354,9 +354,9 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                       placeholder="Shop name"
                       className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
                       style={{
-                        background: '#2D2648',
-                        border: '1px solid #3D3660',
-                        color: '#FFFFFF',
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
                         padding: '10px 14px',
                         borderRadius: '12px',
                       }}
@@ -374,9 +374,9 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                       placeholder="Notes"
                       className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
                       style={{
-                        background: '#2D2648',
-                        border: '1px solid #3D3660',
-                        color: '#FFFFFF',
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
                         padding: '10px 14px',
                         borderRadius: '12px',
                       }}

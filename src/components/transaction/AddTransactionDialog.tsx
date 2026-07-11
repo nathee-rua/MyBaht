@@ -216,7 +216,7 @@ export default function AddTransactionDialog({
           </div>
 
           {/* Date Selector */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
+          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
             <CalendarIcon size={18} className="text-accent-purple" />
             <div className="flex-1">
               <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.date')}</label>
@@ -226,7 +226,7 @@ export default function AddTransactionDialog({
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full focus:outline-none"
-                style={{ color: '#FFFFFF' }}
+                style={{ color: 'var(--color-text-primary)' }}
               />
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function AddTransactionDialog({
           {/* Category Selector Grid */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider pl-1">{t('transaction.category')}</label>
-            <div className="grid grid-cols-4 gap-2 p-2.5 rounded-2xl animate-fade-in" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
+            <div className="grid grid-cols-4 gap-2 p-2.5 rounded-2xl animate-fade-in" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
               {categories.map((cat) => {
                 const IconComponent = IconMap[cat.icon] || MoreHorizontal;
                 const isSelected = category === cat.id;
@@ -268,7 +268,7 @@ export default function AddTransactionDialog({
           {/* Payment Method / Asset Picker */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider pl-1">{t('transaction.asset')}</label>
-            <div className="grid grid-cols-5 gap-1.5 p-2 rounded-2xl" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
+            <div className="grid grid-cols-5 gap-1.5 p-2 rounded-2xl" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
               {PAYMENT_METHODS.map((pm) => {
                 const isSelected = paymentMethod === pm.id;
                 return (
@@ -297,7 +297,7 @@ export default function AddTransactionDialog({
           </div>
 
           {/* Merchant Input */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
+          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
               <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.merchant')}</label>
@@ -308,13 +308,13 @@ export default function AddTransactionDialog({
                 onChange={(e) => setMerchant(e.target.value)}
                 placeholder="Merchant/Shop (Optional)"
                 className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted focus:outline-none"
-                style={{ color: '#FFFFFF' }}
+                style={{ color: 'var(--color-text-primary)' }}
               />
             </div>
           </div>
 
           {/* Notes Input */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl mb-8" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
+          <div className="flex items-center gap-3 p-3 rounded-2xl mb-8" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
               <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.note')}</label>
@@ -325,7 +325,7 @@ export default function AddTransactionDialog({
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Notes (Optional)"
                 className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted focus:outline-none"
-                style={{ color: '#FFFFFF' }}
+                style={{ color: 'var(--color-text-primary)' }}
               />
             </div>
           </div>

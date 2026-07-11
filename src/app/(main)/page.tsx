@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Star, Menu, Plus, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { getTransactions, calculateCategoryBreakdown, createTransaction } from '@/lib/expenses';
-import type { Transaction, DateFilter } from '@/types';
+import type { Transaction, DateFilter, SlipAnalysisResult } from '@/types';
 import DateSelector from '@/components/dashboard/DateSelector';
 import TransactionList from '@/components/dashboard/TransactionList';
 import AddTransactionDialog from '@/components/transaction/AddTransactionDialog';
@@ -14,6 +14,45 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { createClient } from '@/lib/supabase/client';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+
+interface Account {
+  name: string;
+  gradient: string;
+  cardNumber: string;
+  iconType: 'all' | 'cash' | 'bank' | 'credit';
+  method: 'all' | 'cash' | 'bank' | 'credit_card';
+}
+
+const ACCOUNTS: Account[] = [
+  {
+    name: 'All Accounts',
+    gradient: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)',
+    cardNumber: '•••• •••• •••• 8888',
+    iconType: 'all',
+    method: 'all',
+  },
+  {
+    name: 'Cash Account',
+    gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    cardNumber: '•••• •••• •••• 1111',
+    iconType: 'cash',
+    method: 'cash',
+  },
+  {
+    name: 'Bank Account',
+    gradient: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+    cardNumber: '•••• •••• •••• 8635',
+    iconType: 'bank',
+    method: 'bank',
+  },
+  {
+    name: 'Credit Card',
+    gradient: 'linear-gradient(135deg, #FF6B4A 0%, #EF4444 100%)',
+    cardNumber: '•••• •••• •••• 9999',
+    iconType: 'credit',
+    method: 'credit_card',
+  },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,6 +67,18 @@ export default function DashboardPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Accounts Carousel State
+  const [selectedAccountIndex, setSelectedAccountIndex] = useState(0);
+
+  // Horizontal Scrollable Filter Pills State
+  const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>('All Prices');
+
+  // Compute timeframe dynamically from dateFilter to avoid setState-in-effect lint warnings
+  const timeframe: 'month' | 'week' | 'today' = 
+    dateFilter === 'daily' ? 'today' : 
+    dateFilter === 'weekly' ? 'week' : 'month';
 
   // Load username
   useEffect(() => {
@@ -99,18 +150,40 @@ export default function DashboardPage() {
     }
   }, [getDateRange]);
 
+  // Run fetchTransactions asynchronously to satisfy react-hooks/set-state-in-effect
   useEffect(() => {
-    fetchTransactions();
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        fetchTransactions();
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, [fetchTransactions]);
 
-  const handleScanSuccess = async (scannedData: any) => {
+  const handleTimeframeChange = (value: 'month' | 'week' | 'today') => {
+    if (value === 'today') {
+      setDateFilter('daily');
+      setCurrentDate(new Date());
+    } else if (value === 'week') {
+      setDateFilter('weekly');
+      setCurrentDate(new Date());
+    } else if (value === 'month') {
+      setDateFilter('monthly');
+      setCurrentDate(new Date());
+    }
+  };
+
+  const handleScanSuccess = async (scannedData: SlipAnalysisResult) => {
     try {
       await createTransaction({
         kind: 'expense',
         amount: Number(scannedData.amount) || 0,
         category: scannedData.category || 'other',
         note: scannedData.note || scannedData.merchant || 'Scanned Slip',
-        merchant: scannedData.merchant || null,
+        merchant: scannedData.merchant || '',
         payment_method: scannedData.payment_method || 'cash',
         date: scannedData.date || format(new Date(), 'yyyy-MM-dd'),
       });
@@ -122,32 +195,76 @@ export default function DashboardPage() {
     }
   };
 
-  const filteredTransactions = searchQuery
-    ? transactions.filter(
-        (tx) =>
-          tx.note?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.merchant?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : transactions;
+  // Helper to calculate available balance for a specific payment method
+  const getAccountBalance = (accountMethod: 'all' | 'cash' | 'bank' | 'credit_card') => {
+    const acctTxs = transactions.filter((tx) => {
+      if (accountMethod === 'all') return true;
+      return tx.payment_method === accountMethod;
+    });
 
-  const income = filteredTransactions
-    .filter((tx) => tx.kind === 'income')
-    .reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const incomeSum = acctTxs
+      .filter((tx) => tx.kind === 'income')
+      .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-  const expense = filteredTransactions
-    .filter((tx) => tx.kind === 'expense')
-    .reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const expenseSum = acctTxs
+      .filter((tx) => tx.kind === 'expense')
+      .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-  const total = income - expense;
+    return incomeSum - expenseSum;
+  };
+
+  // Apply accounts carousel selection and horizontal filter pills
+  const filteredTransactions = transactions.filter((tx) => {
+    // 1. Search Query Filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        tx.note?.toLowerCase().includes(q) ||
+        tx.category.toLowerCase().includes(q) ||
+        tx.merchant?.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
+    }
+
+    // 2. Accounts Carousel Filter
+    const activeAccount = ACCOUNTS[selectedAccountIndex];
+    if (activeAccount.method !== 'all') {
+      if (tx.payment_method !== activeAccount.method) return false;
+    }
+
+    // 3. Category Pill Filter
+    if (selectedCategory !== 'All Categories') {
+      if (tx.category.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+    }
+
+    // 4. Price Range Pill Filter
+    if (selectedPriceRange !== 'All Prices') {
+      const amount = Number(tx.amount);
+      if (selectedPriceRange === 'Under ฿500') {
+        if (amount >= 500) return false;
+      } else if (selectedPriceRange === '฿500 - ฿5,000') {
+        if (amount < 500 || amount > 5000) return false;
+      } else if (selectedPriceRange === 'Over ฿5,000') {
+        if (amount <= 5000) return false;
+      }
+    }
+
+    return true;
+  });
 
   const handleEditTx = (tx: Transaction) => {
     setEditingTx(tx);
     setShowAddDialog(true);
   };
 
-  // Spending Breakdown data
-  const breakdown = calculateCategoryBreakdown(transactions, 'expense');
+  // Spending Breakdown data (filtered by selected account, but ignores category/price/search filters)
+  const breakdownTransactions = transactions.filter((tx) => {
+    const activeAccount = ACCOUNTS[selectedAccountIndex];
+    if (activeAccount.method !== 'all' && tx.payment_method !== activeAccount.method) {
+      return false;
+    }
+    return true;
+  });
+  const breakdown = calculateCategoryBreakdown(breakdownTransactions, 'expense');
   const chartData = breakdown.map((item) => ({
     name: t(`category.${item.category}`),
     value: item.amount,
@@ -170,6 +287,32 @@ export default function DashboardPage() {
     });
   };
 
+  const activeAccount = ACCOUNTS[selectedAccountIndex];
+  const nextAccountIndex = (selectedAccountIndex + 1) % ACCOUNTS.length;
+  const nextAccount = ACCOUNTS[nextAccountIndex];
+
+  const timeframeOptions = [
+    { label: 'This Month', value: 'month' as const },
+    { label: 'This Week', value: 'week' as const },
+    { label: 'Today', value: 'today' as const },
+  ];
+
+  const categoryOptions = [
+    'All Categories',
+    'Food',
+    'Shopping',
+    'Bills',
+    'Entertainment',
+    'Salary',
+  ];
+
+  const priceOptions = [
+    'All Prices',
+    'Under ฿500',
+    '฿500 - ฿5,000',
+    'Over ฿5,000',
+  ];
+
   return (
     <div className="flex flex-col min-h-screen page-container">
       {/* Header */}
@@ -177,7 +320,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-5">
           {showSearch ? (
             <div className="flex-1 relative animate-fade-in">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#6B7280' }} />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <input
                 id="dashboard-search"
                 type="text"
@@ -224,18 +367,39 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Credit Card (Available Balance) widget */}
-        <div className="relative mt-2 mb-6 select-none">
-          {/* Peeking green card stack */}
+        {/* Credit Card / Accounts Carousel widget */}
+        <div className="relative mt-2 mb-3 select-none h-[180px] w-full flex items-center overflow-visible">
+          {/* Peeking card (next card in array) */}
           <div 
-            className="absolute top-1.5 right-1 w-[92%] h-[176px] rounded-[24px] opacity-25 -z-10 rotate-3 transition-transform duration-300"
-            style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-          />
+            className="absolute right-0 w-[92%] h-[166px] rounded-[24px] opacity-40 -z-10 cursor-pointer transition-all duration-500 hover:opacity-60"
+            style={{ 
+              background: nextAccount.gradient,
+              transform: 'translateX(6%) scale(0.93) rotate(3deg) skewY(1deg)',
+              transformOrigin: 'right center',
+              boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }}
+            onClick={() => setSelectedAccountIndex(nextAccountIndex)}
+          >
+            {/* Subtle card text peeking */}
+            <div className="absolute inset-0 bg-black/5 flex flex-col justify-between p-5 text-white/40">
+              <div className="flex justify-between items-start">
+                <span className="text-[9px] font-bold uppercase tracking-wider">
+                  {nextAccount.name}
+                </span>
+              </div>
+              <span className="text-[12px] font-mono tracking-widest">
+                {nextAccount.cardNumber}
+              </span>
+            </div>
+          </div>
           
-          {/* Main card */}
+          {/* Active Card */}
           <div 
-            className="w-full h-[176px] rounded-[24px] p-6 relative overflow-hidden flex flex-col justify-between shadow-[0_12px_35px_rgba(13,11,26,0.55)] border border-white/10"
-            style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)' }}
+            className="w-[90%] h-[176px] rounded-[24px] p-6 relative overflow-hidden flex flex-col justify-between border border-white/10 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
+            style={{ 
+              background: activeAccount.gradient,
+            }}
           >
             {/* Glowing pattern orbs */}
             <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
@@ -244,24 +408,33 @@ export default function DashboardPage() {
             {/* Top section: chip, balance */}
             <div className="flex items-start justify-between">
               <div className="flex flex-col">
-                <span className="text-[10px] text-white/70 uppercase tracking-widest font-bold">Available Balance</span>
+                <span className="text-[10px] text-white/70 uppercase tracking-widest font-bold">
+                  {activeAccount.name === 'All Accounts' ? 'Available Balance' : `${activeAccount.name} Balance`}
+                </span>
                 <span className="text-2xl font-black text-white mt-0.5 tracking-tight flex items-baseline gap-1">
-                  <span>{formatCurrency(total).replace('THB', '').trim()}</span>
+                  <span>{formatCurrency(getAccountBalance(activeAccount.method)).replace('THB', '').trim()}</span>
                   <span className="text-xs font-bold opacity-80">THB</span>
                 </span>
               </div>
-              {/* Gold Chip */}
-              <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden">
-                <div className="w-full h-px bg-yellow-400/30" />
-                <div className="w-full h-px bg-yellow-400/30" />
-                <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
-                <div className="w-[30%] h-full border-l border-yellow-400/30 absolute right-0 top-0" />
-              </div>
+              
+              {/* Gold Chip or Cash Icon / Symbol */}
+              {activeAccount.iconType === 'cash' ? (
+                <div className="w-10 h-7 rounded-md bg-emerald-400/25 border border-emerald-400/40 flex items-center justify-center text-[15px] font-bold text-emerald-300">
+                  ฿
+                </div>
+              ) : (
+                <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden">
+                  <div className="w-full h-px bg-yellow-400/30" />
+                  <div className="w-full h-px bg-yellow-400/30" />
+                  <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
+                  <div className="w-[30%] h-full border-l border-yellow-400/30 absolute right-0 top-0" />
+                </div>
+              )}
             </div>
 
             {/* Middle section: Card number */}
             <div className="text-[15px] text-white/80 tracking-[0.22em] font-mono mt-3">
-              •••• •••• •••• 8635
+              {activeAccount.cardNumber}
             </div>
 
             {/* Bottom section: Card holder and MasterCard brand circles */}
@@ -272,12 +445,31 @@ export default function DashboardPage() {
                   {username}
                 </span>
               </div>
-              <div className="flex items-center">
-                <div className="w-6.5 h-6.5 rounded-full bg-red-500/85 z-10 -mr-2.5" />
-                <div className="w-6.5 h-6.5 rounded-full bg-amber-500/85" />
-              </div>
+              {activeAccount.iconType === 'cash' ? (
+                <span className="text-xs font-black text-white/95 bg-white/10 px-2.5 py-1 rounded-md border border-white/10">CASH</span>
+              ) : (
+                <div className="flex items-center">
+                  <div className="w-6.5 h-6.5 rounded-full bg-red-500/85 z-10 -mr-2.5" />
+                  <div className="w-6.5 h-6.5 rounded-full bg-amber-500/85" />
+                </div>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* Indicators for Accounts */}
+        <div className="flex justify-center gap-1.5 mb-5">
+          {ACCOUNTS.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setSelectedAccountIndex(idx)}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                selectedAccountIndex === idx ? 'w-5 bg-accent-purple' : 'w-1.5 bg-text-muted/40 hover:bg-text-muted/70'
+              }`}
+              title={ACCOUNTS[idx].name}
+            />
+          ))}
         </div>
 
         {/* Quick Action Outline Pills */}
@@ -317,8 +509,8 @@ export default function DashboardPage() {
         <div 
           className="p-5 mb-6" 
           style={{ 
-            background: '#1A1530', 
-            border: '1px solid #3D3660', 
+            background: 'var(--color-bg-secondary)', 
+            border: '1px solid var(--color-border)', 
             borderRadius: 20, 
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' 
           }}
@@ -382,6 +574,63 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Horizontal Scrollable Filter Pills */}
+      <div className="px-4 mb-5 flex flex-col gap-2.5">
+        {/* Timeframe Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
+          {timeframeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleTimeframeChange(opt.value)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
+                timeframe === opt.value
+                  ? 'bg-[var(--color-active-pill-bg)] border-[var(--color-active-pill)] text-[var(--color-active-pill)] shadow-sm'
+                  : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
+          {categoryOptions.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
+                selectedCategory === cat
+                  ? 'bg-[var(--color-active-pill-bg)] border-[var(--color-active-pill)] text-[var(--color-active-pill)] shadow-sm'
+                  : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Price Range Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
+          {priceOptions.map((price) => (
+            <button
+              key={price}
+              type="button"
+              onClick={() => setSelectedPriceRange(price)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
+                selectedPriceRange === price
+                  ? 'bg-[var(--color-active-pill-bg)] border-[var(--color-active-pill)] text-[var(--color-active-pill)] shadow-sm'
+                  : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
+              }`}
+            >
+              {price}
+            </button>
+          ))}
         </div>
       </div>
 

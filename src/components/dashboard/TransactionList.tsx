@@ -56,8 +56,8 @@ export default function TransactionList({
             key={date} 
             className="p-4 animate-scale-in"
             style={{ 
-              background: '#1A1530', 
-              border: '1px solid #3D3660', 
+              background: 'var(--color-bg-secondary)', 
+              border: '1px solid var(--color-border)', 
               borderRadius: 20, 
               boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)' 
             }}
