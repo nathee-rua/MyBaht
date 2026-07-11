@@ -21,7 +21,7 @@ export type Category = ExpenseCategory | IncomeCategory;
 
 export type PaymentMethod = 'cash' | 'bank' | 'credit_card' | 'e_wallet' | 'savings';
 
-export type AIProvider = 'openai' | 'openrouter' | 'google' | 'grok';
+export type AIProvider = 'openai' | 'openrouter' | 'google' | 'grok' | 'nvidia' | 'opencode' | 'llm7';
 
 export type Language = 'th' | 'en';
 export type Theme = 'dark' | 'light';

@@ -35,6 +35,30 @@ export const AI_PROVIDERS: AIProviderConfig[] = [
     keyPrefix: 'xai-',
     icon: '⚡',
   },
+  {
+    id: 'nvidia',
+    name: 'NVIDIA NIM',
+    baseUrl: 'https://integrate.api.nvidia.com/v1',
+    modelsEndpoint: '/models',
+    keyPrefix: 'nvapi-',
+    icon: '🟢',
+  },
+  {
+    id: 'opencode',
+    name: 'OpenCode Zen',
+    baseUrl: 'https://api.opencode.ai/v1',
+    modelsEndpoint: '/models',
+    keyPrefix: '',
+    icon: '🧘',
+  },
+  {
+    id: 'llm7',
+    name: 'LLM7.io',
+    baseUrl: 'https://api.llm7.io/v1',
+    modelsEndpoint: '/models',
+    keyPrefix: '',
+    icon: '7️⃣',
+  },
 ];
 
 export function getProviderConfig(providerId: AIProvider): AIProviderConfig {
