@@ -22,6 +22,7 @@ const translations: Record<string, Record<Language, string>> = {
   'auth.register': { th: 'สร้างบัญชี', en: 'Create an Account' },
   'auth.social': { th: 'หรือเข้าสู่ระบบด้วย', en: 'Or continue login with' },
   'auth.email': { th: 'อีเมล', en: 'Email' },
+  'auth.username': { th: 'ชื่อผู้ใช้งาน', en: 'Username' },
   'auth.password': { th: 'รหัสผ่าน', en: 'Password' },
   'auth.confirmPassword': { th: 'ยืนยันรหัสผ่าน', en: 'Confirm Password' },
   'auth.logout': { th: 'ออกจากระบบ', en: 'Logout' },

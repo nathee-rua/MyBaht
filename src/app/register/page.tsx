@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CircleDollarSign, Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { CircleDollarSign, User, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 export default function RegisterPage() {
   const router = useRouter();
   const { t } = useI18n();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +21,7 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password || !confirmPassword) {
+    if (!username || !password || !confirmPassword) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -39,8 +39,12 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const supabase = createClient();
+      const formattedEmail = username.includes('@')
+        ? username.trim()
+        : `${username.trim().toLowerCase()}@mybaht.local`;
+
       const { error } = await supabase.auth.signUp({
-        email,
+        email: formattedEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -50,7 +54,7 @@ export default function RegisterPage() {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Check your email for the confirmation link!');
+        toast.success('Registration successful! Please log in.');
         router.push('/login');
       }
     } catch {
@@ -104,15 +108,15 @@ export default function RegisterPage() {
 
         {/* Register form */}
         <form onSubmit={handleRegister} className="space-y-4">
-          {/* Email */}
+          {/* Username */}
           <div className="relative">
-            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#6B7280' }} />
+            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#6B7280' }} />
             <input
-              id="register-email"
-              type="email"
-              placeholder={t('auth.email')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="register-username"
+              type="text"
+              placeholder={t('auth.username')}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full py-3.5 rounded-xl text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
               style={{
                 background: '#1A1530',
