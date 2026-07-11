@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     }
 
     const { provider, apiKey: passedApiKey } = await req.json();
-    let keyToUse = passedApiKey;
+    const isPlaceholder = passedApiKey === '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
+    let keyToUse = isPlaceholder ? null : passedApiKey;
 
     if (!keyToUse) {
       const { data, error } = await supabase

@@ -202,7 +202,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
           {/* Provider Selection */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-text-secondary">{t('ai.provider')}</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {AI_PROVIDERS.map((prov) => (
                 <button
                   key={prov.id}
@@ -213,7 +213,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
                     setModel('');
                     setApiKey('');
                   }}
-                  className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition ${
+                  className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition w-[calc(25%-6px)] min-w-[72px] ${
                     provider === prov.id
                       ? 'border-accent-purple bg-accent-purple/10 text-white font-bold'
                       : 'border-border/40 bg-bg-primary/45 text-text-secondary'

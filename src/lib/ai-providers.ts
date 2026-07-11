@@ -86,9 +86,16 @@ export function keyIssue(provider: AIProvider, key: string): string | null {
 // ===== Fetch Models =====
 
 const VISION_KEYWORDS = [
-  'vision', 'gpt-4o', 'gpt-4-turbo', 'gemini', 'claude-3',
-  'llava', 'qwen-vl', 'qwen2-vl', 'pixtral', 'grok-vision',
-  'grok-2-vision', 'gemini-1.5', 'gemini-2', 'gemini-pro-vision',
+  'vision', 'gpt-4o', 'gpt-4-turbo', 'gpt-4.1', 'gpt-4.5', 'gpt-4o-mini',
+  'o1', 'o3', 'o4-mini',
+  'gemini', 'gemini-1.5', 'gemini-2', 'gemini-pro-vision',
+  'claude-3', 'claude-3.5', 'claude-3.7', 'claude-4',
+  'llava', 'qwen-vl', 'qwen2-vl', 'qwen-2.5-vl', 'qwen2.5-vl',
+  'pixtral', 'mistral-large',
+  'grok-vision', 'grok-2-vision', 'grok-2', 'grok-3',
+  'llama-3.2', 'llama-4',
+  'deepseek',
+  'gemma',
 ];
 
 function isVisionModel(modelId: string): boolean {
