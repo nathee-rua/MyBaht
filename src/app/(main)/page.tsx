@@ -314,7 +314,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Spending Breakdown card with chart */}
-        <div className="card-base p-5 mb-6">
+        <div 
+          className="p-5 mb-6" 
+          style={{ 
+            background: '#1A1530', 
+            border: '1px solid #3D3660', 
+            borderRadius: 20, 
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' 
+          }}
+        >
           <h3 className="text-xs font-black text-text-primary uppercase tracking-wider mb-4 flex items-center justify-between">
             <span>Spending Breakdown</span>
             <span className="text-[10px] text-text-muted font-bold lowercase tracking-normal">this period</span>

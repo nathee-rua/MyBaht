@@ -216,24 +216,25 @@ export default function AddTransactionDialog({
           </div>
 
           {/* Date Selector */}
-          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10">
+          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
             <CalendarIcon size={18} className="text-accent-purple" />
             <div className="flex-1">
-              <label className="text-[10px] text-text-muted block">{t('transaction.date')}</label>
+              <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.date')}</label>
               <input
                 id="transaction-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full focus:outline-none"
+                style={{ color: '#FFFFFF' }}
               />
             </div>
           </div>
 
           {/* Category Selector Grid */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] text-text-muted font-bold uppercase tracking-wider pl-1">{t('transaction.category')}</label>
-            <div className="grid grid-cols-4 gap-2 bg-secondary/20 p-2.5 rounded-2xl border border-border/10">
+            <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider pl-1">{t('transaction.category')}</label>
+            <div className="grid grid-cols-4 gap-2 p-2.5 rounded-2xl animate-fade-in" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
               {categories.map((cat) => {
                 const IconComponent = IconMap[cat.icon] || MoreHorizontal;
                 const isSelected = category === cat.id;
@@ -266,8 +267,8 @@ export default function AddTransactionDialog({
 
           {/* Payment Method / Asset Picker */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] text-text-muted font-bold uppercase tracking-wider pl-1">{t('transaction.asset')}</label>
-            <div className="grid grid-cols-5 gap-1.5 bg-secondary/20 p-2 rounded-2xl border border-border/10">
+            <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider pl-1">{t('transaction.asset')}</label>
+            <div className="grid grid-cols-5 gap-1.5 p-2 rounded-2xl" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
               {PAYMENT_METHODS.map((pm) => {
                 const isSelected = paymentMethod === pm.id;
                 return (
@@ -296,10 +297,10 @@ export default function AddTransactionDialog({
           </div>
 
           {/* Merchant Input */}
-          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10">
+          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
-              <label className="text-[10px] text-text-muted block">{t('transaction.merchant')}</label>
+              <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.merchant')}</label>
               <input
                 id="transaction-merchant"
                 type="text"
@@ -307,15 +308,16 @@ export default function AddTransactionDialog({
                 onChange={(e) => setMerchant(e.target.value)}
                 placeholder="Merchant/Shop (Optional)"
                 className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted focus:outline-none"
+                style={{ color: '#FFFFFF' }}
               />
             </div>
           </div>
 
           {/* Notes Input */}
-          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10 mb-8">
+          <div className="flex items-center gap-3 p-3 rounded-2xl mb-8" style={{ background: '#1A1530', border: '1px solid #3D3660' }}>
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
-              <label className="text-[10px] text-text-muted block">{t('transaction.note')}</label>
+              <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.note')}</label>
               <input
                 id="transaction-note"
                 type="text"
@@ -323,6 +325,7 @@ export default function AddTransactionDialog({
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Notes (Optional)"
                 className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted focus:outline-none"
+                style={{ color: '#FFFFFF' }}
               />
             </div>
           </div>

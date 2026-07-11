@@ -130,15 +130,15 @@ export default function StatsPage() {
         /* Stats Visuals */
         <div className="flex flex-col gap-6 animate-scale-in">
           {/* Income Outcome simple summary */}
-          <div className="grid grid-cols-2 gap-3 bg-secondary/15 p-3 rounded-2xl border border-border/20">
+          <div className="grid grid-cols-2 gap-3 p-3" style={{ background: '#1A1530', border: '1px solid #3D3660', borderRadius: 20 }}>
             <div className="text-center py-1.5">
-              <span className="text-[10px] text-text-muted font-bold block uppercase">{t('transaction.income')}</span>
+              <span className="text-[10px] text-text-secondary font-bold block uppercase">{t('transaction.income')}</span>
               <span className="text-sm font-extrabold text-income-green mt-0.5">
                 +{formatCurrency(totalIncome).replace('THB', '').trim()}
               </span>
             </div>
-            <div className="text-center py-1.5 border-l border-border/25">
-              <span className="text-[10px] text-text-muted font-bold block uppercase">{t('transaction.outcome')}</span>
+            <div className="text-center py-1.5" style={{ borderLeft: '1px solid rgba(61, 54, 96, 0.4)' }}>
+              <span className="text-[10px] text-text-secondary font-bold block uppercase">{t('transaction.outcome')}</span>
               <span className="text-sm font-extrabold text-expense-red mt-0.5">
                 -{formatCurrency(totalExpense).replace('THB', '').trim()}
               </span>
@@ -147,7 +147,7 @@ export default function StatsPage() {
 
           {/* Donut Chart Component */}
           {breakdown.length > 0 ? (
-            <div className="card-base p-4 flex flex-col items-center">
+            <div className="p-4 flex flex-col items-center w-full" style={{ background: '#1A1530', border: '1px solid #3D3660', borderRadius: 20, boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' }}>
               <DonutChart
                 data={breakdown}
                 month={currentDate.toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', { month: 'short' })}
@@ -165,19 +165,19 @@ export default function StatsPage() {
           </div>
 
           {/* Trend Bar Chart */}
-          <div className="card-base p-4">
+          <div className="p-4 w-full" style={{ background: '#1A1530', border: '1px solid #3D3660', borderRadius: 20, boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' }}>
             <TrendChart transactions={transactions} />
           </div>
 
           {/* Line Chart */}
-          <div className="card-base p-4">
+          <div className="p-4 w-full" style={{ background: '#1A1530', border: '1px solid #3D3660', borderRadius: 20, boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' }}>
             <LineChart transactions={transactions} />
           </div>
         </div>
       ) : (
         /* Budget or Notes placeholders matching aesthetics */
-        <div className="card-base p-8 text-center text-text-muted flex flex-col items-center justify-center gap-3">
-          <BarChart3 size={32} />
+        <div className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full" style={{ background: '#1A1530', border: '1px solid #3D3660', borderRadius: 20 }}>
+          <BarChart3 size={32} className="text-accent-purple" />
           <span className="text-xs font-semibold">Coming Soon in next update!</span>
         </div>
       )}

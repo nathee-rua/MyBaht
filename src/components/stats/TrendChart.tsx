@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -72,6 +72,11 @@ function formatYAxis(value: number): string {
 export default function TrendChart({ transactions }: TrendChartProps) {
   const { t } = useI18n();
   const [period, setPeriod] = useState<Period>('daily');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const periods: { key: Period; label: string }[] = [
     { key: 'daily', label: t('filter.daily') },
@@ -86,8 +91,16 @@ export default function TrendChart({ transactions }: TrendChartProps) {
 
   const isEmpty = chartData.every(d => d.income === 0 && d.expense === 0);
 
+  if (!mounted) {
+    return (
+      <div className="w-full flex items-center justify-center animate-fade-in" style={{ height: 220 }}>
+        <div className="w-8 h-8 rounded-full border-2 border-accent-purple border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in w-full">
       {/* Period Tabs */}
       <div className="tab-group mb-4">
         {periods.map((p) => (
@@ -115,61 +128,63 @@ export default function TrendChart({ transactions }: TrendChartProps) {
           <p className="text-sm text-text-muted">{t('common.noData')}</p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart
-            data={chartData}
-            margin={{ top: 5, right: 5, left: -15, bottom: 5 }}
-            barCategoryGap="25%"
-            barGap={4}
-          >
-            <defs>
-              <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#22C55E" stopOpacity={1} />
-                <stop offset="100%" stopColor="#22C55E" stopOpacity={0.6} />
-              </linearGradient>
-              <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#EF4444" stopOpacity={1} />
-                <stop offset="100%" stopColor="#EF4444" stopOpacity={0.6} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="rgba(61,54,96,0.3)"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="label"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#6B7280', fontSize: 11 }}
-              dy={8}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#6B7280', fontSize: 11 }}
-              tickFormatter={formatYAxis}
-            />
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: 'rgba(124,58,237,0.08)' }}
-            />
-            <Bar
-              dataKey="income"
-              name={t('transaction.income')}
-              fill="url(#incomeGradient)"
-              radius={[6, 6, 0, 0]}
-              maxBarSize={32}
-            />
-            <Bar
-              dataKey="expense"
-              name={t('transaction.outcome')}
-              fill="url(#expenseGradient)"
-              radius={[6, 6, 0, 0]}
-              maxBarSize={32}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="relative w-full flex items-center justify-center" style={{ height: 220 }}>
+          <ResponsiveContainer width="99%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 5, right: 5, left: -15, bottom: 5 }}
+              barCategoryGap="25%"
+              barGap={4}
+            >
+              <defs>
+                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22C55E" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#22C55E" stopOpacity={0.6} />
+                </linearGradient>
+                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#EF4444" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#EF4444" stopOpacity={0.6} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(61,54,96,0.3)"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#6B7280', fontSize: 11 }}
+                dy={8}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#6B7280', fontSize: 11 }}
+                tickFormatter={formatYAxis}
+              />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ fill: 'rgba(124,58,237,0.08)' }}
+              />
+              <Bar
+                dataKey="income"
+                name={t('transaction.income')}
+                fill="url(#incomeGradient)"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={32}
+              />
+              <Bar
+                dataKey="expense"
+                name={t('transaction.outcome')}
+                fill="url(#expenseGradient)"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={32}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

@@ -240,35 +240,60 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
               {/* Parsed Result Form */}
               {result && (
-                <div className="card-base p-4 flex flex-col gap-3 animate-scale-in">
-                  <h3 className="text-sm font-bold text-accent-purple-light flex items-center gap-1.5 border-b border-border/20 pb-2 mb-1">
+                <div 
+                  className="p-5 flex flex-col gap-4 animate-scale-in"
+                  style={{
+                    background: '#1A1530',
+                    border: '1px solid #3D3660',
+                    borderRadius: '20px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                  }}
+                >
+                  <h3 
+                    className="text-sm font-bold flex items-center gap-1.5 border-b pb-2.5 mb-1 text-accent-purple-light"
+                    style={{ borderColor: 'rgba(61, 54, 96, 0.4)' }}
+                  >
                     <Check size={16} />
                     <span>Parsed Transaction Details</span>
                   </h3>
 
                   {/* Amount */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-text-muted font-bold uppercase">{t('transaction.amount')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.amount')}</label>
                     <input
                       id="scan-amount"
                       type="number"
                       value={result.amount}
                       onChange={(e) => setResult({ ...result, amount: parseFloat(e.target.value) || 0 })}
-                      className="bg-transparent border-b border-border/40 text-lg font-bold text-text-primary py-1 focus:outline-none focus:border-accent-purple"
+                      className="w-full text-base font-bold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
+                      style={{
+                        background: '#2D2648',
+                        border: '1px solid #3D3660',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                      }}
                     />
                   </div>
 
                   {/* Category */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-text-muted font-bold uppercase">{t('transaction.category')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.category')}</label>
                     <select
                       id="scan-category"
                       value={result.category}
                       onChange={(e) => setResult({ ...result, category: e.target.value as Category })}
-                      className="bg-transparent border-b border-border/40 text-sm font-semibold text-text-primary py-1 focus:outline-none focus:border-accent-purple"
+                      className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
+                      style={{
+                        background: '#2D2648',
+                        border: '1px solid #3D3660',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                      }}
                     >
                       {EXPENSE_CATEGORIES.map((cat) => (
-                        <option key={cat.id} value={cat.id} className="bg-bg-secondary text-text-primary text-xs">
+                        <option key={cat.id} value={cat.id} className="bg-[#1A1530] text-white">
                           {t(`category.${cat.id}`)}
                         </option>
                       ))}
@@ -276,28 +301,42 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                   </div>
 
                   {/* Date */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-text-muted font-bold uppercase">{t('transaction.date')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.date')}</label>
                     <input
                       id="scan-date"
                       type="date"
                       value={result.date}
                       onChange={(e) => setResult({ ...result, date: e.target.value })}
-                      className="bg-transparent border-b border-border/40 text-sm font-semibold text-text-primary py-1 focus:outline-none focus:border-accent-purple"
+                      className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
+                      style={{
+                        background: '#2D2648',
+                        border: '1px solid #3D3660',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                      }}
                     />
                   </div>
 
                   {/* Asset / Payment Method */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-text-muted font-bold uppercase">{t('transaction.asset')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.asset')}</label>
                     <select
                       id="scan-asset"
                       value={result.payment_method}
                       onChange={(e) => setResult({ ...result, payment_method: e.target.value as PaymentMethod })}
-                      className="bg-transparent border-b border-border/40 text-sm font-semibold text-text-primary py-1 focus:outline-none focus:border-accent-purple"
+                      className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
+                      style={{
+                        background: '#2D2648',
+                        border: '1px solid #3D3660',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                      }}
                     >
                       {PAYMENT_METHODS.map((pm) => (
-                        <option key={pm.id} value={pm.id} className="bg-bg-secondary text-text-primary text-xs">
+                        <option key={pm.id} value={pm.id} className="bg-[#1A1530] text-white">
                           {t(`payment.${pm.id}`)}
                         </option>
                       ))}
@@ -305,35 +344,56 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                   </div>
 
                   {/* Merchant */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-text-muted font-bold uppercase">{t('transaction.merchant')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.merchant')}</label>
                     <input
                       id="scan-merchant"
                       type="text"
                       value={result.merchant}
                       onChange={(e) => setResult({ ...result, merchant: e.target.value })}
                       placeholder="Shop name"
-                      className="bg-transparent border-b border-border/40 text-sm font-semibold text-text-primary py-1 focus:outline-none focus:border-accent-purple placeholder:text-text-muted"
+                      className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
+                      style={{
+                        background: '#2D2648',
+                        border: '1px solid #3D3660',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                      }}
                     />
                   </div>
 
                   {/* Notes */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-text-muted font-bold uppercase">{t('transaction.note')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.note')}</label>
                     <input
                       id="scan-note"
                       type="text"
                       value={result.note}
                       onChange={(e) => setResult({ ...result, note: e.target.value })}
                       placeholder="Notes"
-                      className="bg-transparent border-b border-border/40 text-sm font-semibold text-text-primary py-1 focus:outline-none focus:border-accent-purple placeholder:text-text-muted"
+                      className="w-full text-sm font-semibold focus:ring-2 focus:ring-accent-purple/50 transition-all outline-none"
+                      style={{
+                        background: '#2D2648',
+                        border: '1px solid #3D3660',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                      }}
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={handleConfirm}
-                    className="w-full bg-income-green hover:bg-green-600 text-white rounded-2xl py-3 text-sm font-bold transition flex items-center justify-center gap-1.5 mt-2"
+                    className="w-full text-sm font-bold transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
+                    style={{
+                      background: '#22C55E',
+                      color: '#FFFFFF',
+                      padding: '14px',
+                      borderRadius: '14px',
+                      boxShadow: '0 4px 12px rgba(34, 197, 94, 0.25)',
+                    }}
                   >
                     <Check size={16} />
                     <span>Apply Parsed Values</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PieChart,
   Pie,
@@ -103,7 +103,12 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 export default function DonutChart({ data, month, total }: DonutChartProps) {
   const { t, formatCurrency } = useI18n();
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+  const [mounted, setMounted] = useState(false);
   const PieComponent = Pie as any;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!data || data.length === 0) {
     return (
@@ -119,6 +124,14 @@ export default function DonutChart({ data, month, total }: DonutChartProps) {
     );
   }
 
+  if (!mounted) {
+    return (
+      <div className="w-full flex items-center justify-center" style={{ height: 260 }}>
+        <div className="w-8 h-8 rounded-full border-2 border-accent-purple border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   // Assign colors from CHART_COLORS if not already set
   const chartData = data.map((item, index) => ({
     ...item,
@@ -126,8 +139,8 @@ export default function DonutChart({ data, month, total }: DonutChartProps) {
   }));
 
   return (
-    <div className="relative animate-fade-in">
-      <ResponsiveContainer width="100%" height={260}>
+    <div className="relative w-full flex items-center justify-center animate-fade-in" style={{ height: 260 }}>
+      <ResponsiveContainer width="99%" height="100%">
         <PieChart>
           <PieComponent
             data={chartData}
@@ -167,7 +180,7 @@ export default function DonutChart({ data, month, total }: DonutChartProps) {
       </ResponsiveContainer>
 
       {/* Center Text */}
-      <div className="chart-center-label">
+      <div className="chart-center-label" style={{ position: 'absolute', transform: 'translate(-50%, -50%)', left: '50%', top: '50%', textAlign: 'center', pointerEvents: 'none' }}>
         <p className="text-xs text-text-muted mb-1">
           {t('stats.spending')}
         </p>

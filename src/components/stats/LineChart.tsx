@@ -86,6 +86,11 @@ function formatYAxis(value: number): string {
 
 export default function NetLineChart({ transactions }: NetLineChartProps) {
   const { t } = useI18n();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const chartData = useMemo(() => {
     const data = getChartData(transactions, 'monthly');
@@ -103,6 +108,14 @@ export default function NetLineChart({ transactions }: NetLineChartProps) {
 
   const isEmpty = chartData.every(d => d.income === 0 && d.expense === 0);
 
+  if (!mounted) {
+    return (
+      <div className="w-full flex items-center justify-center animate-fade-in" style={{ height: 220 }}>
+        <div className="w-8 h-8 rounded-full border-2 border-accent-purple border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   if (isEmpty) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-3 animate-fade-in">
@@ -118,59 +131,61 @@ export default function NetLineChart({ transactions }: NetLineChartProps) {
   }
 
   return (
-    <div className="animate-fade-in">
-      <ResponsiveContainer width="100%" height={220}>
-        <AreaChart
-          data={chartData}
-          margin={{ top: 5, right: 5, left: -15, bottom: 5 }}
-        >
-          <defs>
-            <linearGradient id="netGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.3} />
-              <stop offset="50%" stopColor="#8B5CF6" stopOpacity={0.1} />
-              <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="rgba(61,54,96,0.3)"
-            vertical={false}
-          />
-          <XAxis
-            dataKey="label"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: '#6B7280', fontSize: 11 }}
-            dy={8}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: '#6B7280', fontSize: 11 }}
-            tickFormatter={formatYAxis}
-          />
-          <Tooltip
-            content={<CustomTooltip />}
-            cursor={{
-              stroke: 'rgba(139,92,246,0.3)',
-              strokeWidth: 1,
-              strokeDasharray: '4 4',
-            }}
-          />
-          <Area
-            type="monotone"
-            dataKey="cumulativeNet"
-            stroke="#8B5CF6"
-            strokeWidth={2.5}
-            fill="url(#netGradient)"
-            dot={false}
-            activeDot={<CustomActiveDot />}
-            animationBegin={0}
-            animationDuration={1000}
-            animationEasing="ease-out"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="animate-fade-in w-full">
+      <div className="relative w-full flex items-center justify-center" style={{ height: 220 }}>
+        <ResponsiveContainer width="99%" height="100%">
+          <AreaChart
+            data={chartData}
+            margin={{ top: 5, right: 5, left: -15, bottom: 5 }}
+          >
+            <defs>
+              <linearGradient id="netGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                <stop offset="50%" stopColor="#8B5CF6" stopOpacity={0.1} />
+                <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="rgba(61,54,96,0.3)"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#6B7280', fontSize: 11 }}
+              dy={8}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#6B7280', fontSize: 11 }}
+              tickFormatter={formatYAxis}
+            />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{
+                stroke: 'rgba(139,92,246,0.3)',
+                strokeWidth: 1,
+                strokeDasharray: '4 4',
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="cumulativeNet"
+              stroke="#8B5CF6"
+              strokeWidth={2.5}
+              fill="url(#netGradient)"
+              dot={false}
+              activeDot={<CustomActiveDot />}
+              animationBegin={0}
+              animationDuration={1000}
+              animationEasing="ease-out"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

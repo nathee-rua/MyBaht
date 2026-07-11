@@ -90,7 +90,16 @@ export default function MonthlyPage() {
             if (txs.length === 0) return null;
 
             return (
-              <div key={monthIndex} className="card-base p-4 flex flex-col gap-3 hover:border-border-light transition cursor-pointer">
+              <div 
+                key={monthIndex} 
+                className="p-4 flex flex-col gap-3 transition cursor-pointer"
+                style={{ 
+                  background: '#1A1530', 
+                  border: '1px solid #3D3660', 
+                  borderRadius: 20,
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
+                }}
+              >
                 {/* Month Name and Totals */}
                 <div className="flex items-center justify-between">
                   <h3 className="font-extrabold text-text-primary capitalize">{getMonthName(monthIndex)}</h3>

@@ -19,8 +19,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('mybaht-theme') as Theme | null;
     if (saved && (saved === 'dark' || saved === 'light')) {
       setThemeState(saved);
-    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-      setThemeState('light');
+    } else {
+      setThemeState('dark');
     }
   }, []);
 

@@ -52,7 +52,16 @@ export default function TransactionList({
         }, 0);
 
         return (
-          <div key={date} className="card-base p-4 animate-scale-in">
+          <div 
+            key={date} 
+            className="p-4 animate-scale-in"
+            style={{ 
+              background: '#1A1530', 
+              border: '1px solid #3D3660', 
+              borderRadius: 20, 
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)' 
+            }}
+          >
             {/* Group Header */}
             <div className="flex items-center justify-between border-b border-border/10 pb-2 mb-2 text-xs font-semibold text-text-muted">
               <span>{formatDate(date)}</span>

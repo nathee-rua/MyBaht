@@ -361,52 +361,6 @@ body {
   animation: shimmer 2s infinite;
 }
 
-/* ===== Light Theme ===== */
-[data-theme="light"] body {
-  background-color: #F8F7FC;
-  color: #1A1530;
-}
-
-[data-theme="light"] .card-base {
-  background: #FFFFFF;
-  border-color: #E5E2EF;
-}
-
-[data-theme="light"] .card-elevated {
-  background: #F3F1FA;
-  border-color: #E5E2EF;
-}
-
-[data-theme="light"] .bottom-nav {
-  background: rgba(248, 247, 252, 0.95);
-  border-color: #E5E2EF;
-}
-
-[data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(229, 226, 239, 0.5);
-}
-
-[data-theme="light"] .tab-group {
-  background: #F3F1FA;
-  border-color: #E5E2EF;
-}
-
-[data-theme="light"] .tab-item.active {
-  background: #FFFFFF;
-  color: #1A1530;
-}
-
-[data-theme="light"] .calc-key-number {
-  background: #F3F1FA;
-  color: #1A1530;
-  border-color: #E5E2EF;
-}
-
-[data-theme="light"] .transaction-item:hover {
-  background: rgba(243, 241, 250, 0.8);
-}
-
 /* ===== Mobile Safe Area ===== */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .pb-safe {
