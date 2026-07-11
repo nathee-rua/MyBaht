@@ -159,7 +159,7 @@ export default function AddTransactionDialog({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-bg-primary rounded-t-[28px] border-t border-border flex flex-col h-[90vh] overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-bg-primary rounded-none border-t-4 border-x-4 border-accent-purple flex flex-col h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/20 flex-shrink-0">
           <button onClick={onClose} className="p-1 hover:bg-secondary/40 rounded-full text-text-secondary cursor-pointer">
@@ -177,7 +177,10 @@ export default function AddTransactionDialog({
               <span>AI SCAN</span>
             </button>
           ) : (
-            <button onClick={handleDelete} className="text-xs font-bold text-expense-red hover:underline cursor-pointer">
+            <button 
+              onClick={handleDelete} 
+              className="bg-expense-red text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-[0_3px_10px_rgba(239,68,68,0.3)] hover:bg-red-600 active:scale-95 transition cursor-pointer"
+            >
               {t('common.delete')}
             </button>
           )}

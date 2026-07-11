@@ -131,7 +131,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-bg-primary rounded-t-3xl border-t border-border flex flex-col h-[85vh] overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-bg-primary rounded-none border-t-4 border-x-4 border-accent-purple flex flex-col h-[85vh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/20">
           <div className="flex items-center gap-2">

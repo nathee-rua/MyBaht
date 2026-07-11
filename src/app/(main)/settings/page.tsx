@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
 import { createClient } from '@/lib/supabase/client';
 import { getTransactions } from '@/lib/expenses';
 import AISettingsDialog from '@/components/ai/AISettingsDialog';
+import AddTransactionDialog from '@/components/transaction/AddTransactionDialog';
 import {
   Globe,
   Moon,
@@ -169,7 +170,17 @@ export default function SettingsPage() {
   const { language, setLanguage, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [showAiDialog, setShowAiDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // Listen to bottom navigation center plus button event
+  useEffect(() => {
+    const handleOpenAddTx = () => {
+      setShowAddDialog(true);
+    };
+    window.addEventListener('open-add-transaction', handleOpenAddTx);
+    return () => window.removeEventListener('open-add-transaction', handleOpenAddTx);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -507,6 +518,9 @@ export default function SettingsPage() {
 
       {/* ═══════════ AI Settings Modal ═══════════ */}
       <AISettingsDialog open={showAiDialog} onClose={() => setShowAiDialog(false)} />
+
+      {/* ═══════════ Add Transaction Modal ═══════════ */}
+      <AddTransactionDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} onSuccess={() => {}} />
 
       {/* Spinner keyframe (for export loading) */}
       <style>{`

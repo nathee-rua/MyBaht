@@ -263,7 +263,7 @@ export default function StatsPage() {
           <div className="grid grid-cols-2 gap-3.5 w-full">
             {/* Total Salary Card (Purple) */}
             <div 
-              className="relative overflow-hidden p-4 rounded-2xl border flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-md cursor-pointer"
+              className="relative overflow-hidden p-4 rounded-none border-2 flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-md cursor-pointer"
               style={{ 
                 background: 'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)',
                 borderColor: 'rgba(255, 255, 255, 0.15)',
@@ -301,7 +301,7 @@ export default function StatsPage() {
 
             {/* Total Expense Card (Orange/Coral) */}
             <div 
-              className="relative overflow-hidden p-4 rounded-2xl border flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-md cursor-pointer"
+              className="relative overflow-hidden p-4 rounded-none border-2 flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-md cursor-pointer"
               style={{ 
                 background: 'linear-gradient(135deg, #FF6B4A 0%, #D93B15 100%)',
                 borderColor: 'rgba(255, 255, 255, 0.15)',

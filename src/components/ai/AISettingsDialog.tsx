@@ -175,7 +175,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-bg-secondary border border-border rounded-3xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
+      <div className="w-full max-w-md bg-bg-secondary border-4 border-accent-purple rounded-none overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
           <div className="flex items-center gap-2">

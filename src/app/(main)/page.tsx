@@ -394,13 +394,13 @@ export default function DashboardPage() {
         <div className="relative mt-2 mb-3 select-none h-[180px] w-full flex items-center overflow-visible">
           {/* Peeking card (next card in array) */}
           <div 
-            className="absolute right-0 w-[92%] h-[166px] rounded-[24px] opacity-40 -z-10 cursor-pointer transition-all duration-500 hover:opacity-60"
+            className="absolute right-0 w-[92%] h-[166px] rounded-none opacity-40 -z-10 cursor-pointer transition-all duration-500 hover:opacity-60"
             style={{ 
               background: nextAccount.gradient,
               transform: 'translateX(6%) scale(0.93) rotate(3deg) skewY(1deg)',
               transformOrigin: 'right center',
               boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
-              border: '1px solid rgba(255,255,255,0.1)'
+              border: '2px solid rgba(255,255,255,0.15)'
             }}
             onClick={() => setSelectedAccountIndex(nextAccountIndex)}
           >
@@ -419,7 +419,7 @@ export default function DashboardPage() {
           
           {/* Active Card */}
           <div 
-            className="w-[90%] h-[176px] rounded-[24px] py-4 px-5 relative overflow-hidden flex flex-col justify-between border border-white/10 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
+            className="w-[90%] h-[176px] rounded-none py-4 px-5 relative overflow-hidden flex flex-col justify-between border-2 border-white/20 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
             style={{ 
               background: activeAccount.gradient,
             }}
