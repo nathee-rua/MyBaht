@@ -11,28 +11,44 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { images, isTest } = await req.json();
+    const { images, isTest, provider, apiKey, model } = await req.json();
 
-    // Load provider settings from database
-    const { data: settings, error } = await supabase
-      .from('user_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    let targetProvider = provider;
+    let targetApiKey = apiKey;
+    let targetModel = model;
 
-    if (error || !settings) {
-      return new NextResponse('AI settings not configured. Please set them up in settings.', { status: 400 });
+    const isPlaceholderKey = apiKey === '••••••••••••••••••••••••••••••••';
+
+    // If it's not a test, or we are missing info, or the key is the saved key placeholder
+    if (!isTest || !targetProvider || !targetApiKey || !targetModel || isPlaceholderKey) {
+      // Load provider settings from database
+      const { data: settings, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!isTest && (error || !settings)) {
+        return new NextResponse('AI settings not configured. Please set them up in settings.', { status: 400 });
+      }
+
+      if (settings) {
+        if (!targetProvider) targetProvider = settings.ai_provider;
+        if (!targetModel) targetModel = settings.ai_model;
+        if (!targetApiKey || isPlaceholderKey) {
+          if (settings.ai_api_key_encrypted) {
+            targetApiKey = decrypt(settings.ai_api_key_encrypted);
+          }
+        }
+      }
     }
 
-    const { ai_provider, ai_api_key_encrypted, ai_model } = settings;
-    if (!ai_provider || !ai_api_key_encrypted || !ai_model) {
+    if (!targetProvider || !targetApiKey || !targetModel) {
       return new NextResponse('AI provider config is incomplete. Please update settings.', { status: 400 });
     }
 
-    const apiKey = decrypt(ai_api_key_encrypted);
-
     if (isTest) {
-      await testConnection(ai_provider, apiKey, ai_model);
+      await testConnection(targetProvider, targetApiKey, targetModel);
       return NextResponse.json({ ok: true });
     }
 
@@ -43,7 +59,7 @@ export async function POST(req: Request) {
     // Process all pages/images (usually 1, up to 5)
     // We send the first image to analyzeSlip. For multi-page PDFs, we merge them or process the main page.
     // Let's send the first image as base64.
-    const result = await analyzeSlip(ai_provider, apiKey, ai_model, images[0]);
+    const result = await analyzeSlip(targetProvider, targetApiKey, targetModel, images[0]);
     return NextResponse.json(result);
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
