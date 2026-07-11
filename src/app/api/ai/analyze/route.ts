@@ -48,7 +48,10 @@ export async function POST(req: Request) {
     }
 
     if (isTest) {
-      await testConnection(targetProvider, targetApiKey, targetModel);
+      const testResult = await testConnection(targetProvider, targetApiKey, targetModel);
+      if (!testResult.success) {
+        return new NextResponse(`Connection test failed: ${testResult.message}`, { status: 400 });
+      }
       return NextResponse.json({ ok: true });
     }
 

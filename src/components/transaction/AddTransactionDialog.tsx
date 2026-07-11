@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar as CalendarIcon, Tag, CreditCard, AlignLeft, Sparkles } from 'lucide-react';
+import { 
+  X, Calendar as CalendarIcon, Tag, CreditCard, AlignLeft, Sparkles,
+  UtensilsCrossed, Car, ShoppingBag, Receipt, Gamepad2, Heart, 
+  GraduationCap, MoreHorizontal, Banknote, Gift, TrendingUp, Plus 
+} from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import type { TransactionKind, Category, PaymentMethod, Transaction } from '@/types';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, PAYMENT_METHODS } from '@/types';
@@ -16,6 +20,21 @@ interface AddTransactionDialogProps {
   onSuccess: () => void;
   editTransaction?: Transaction | null;
 }
+
+const IconMap: Record<string, React.ComponentType<any>> = {
+  UtensilsCrossed,
+  Car,
+  ShoppingBag,
+  Receipt,
+  Gamepad2,
+  Heart,
+  GraduationCap,
+  MoreHorizontal,
+  Banknote,
+  Gift,
+  TrendingUp,
+  Plus,
+};
 
 export default function AddTransactionDialog({
   open,
@@ -140,10 +159,10 @@ export default function AddTransactionDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-bg-primary rounded-t-3xl border-t border-border flex flex-col h-[90vh] overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-bg-primary rounded-t-[28px] border-t border-border flex flex-col h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border/20">
-          <button onClick={onClose} className="p-1 hover:bg-secondary/40 rounded-full text-text-secondary">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-border/20 flex-shrink-0">
+          <button onClick={onClose} className="p-1 hover:bg-secondary/40 rounded-full text-text-secondary cursor-pointer">
             <X size={20} />
           </button>
           <span className="text-base font-bold text-text-primary">
@@ -152,25 +171,25 @@ export default function AddTransactionDialog({
           {!editTransaction ? (
             <button
               onClick={() => setShowScanDialog(true)}
-              className="flex items-center gap-1 text-xs font-bold text-accent-purple bg-accent-purple/10 px-3 py-1.5 rounded-full border border-accent-purple/30 hover:bg-accent-purple/20 transition"
+              className="flex items-center gap-1 text-xs font-bold text-accent-purple bg-accent-purple/10 px-3 py-1.5 rounded-full border border-accent-purple/30 hover:bg-accent-purple/20 transition cursor-pointer"
             >
               <Sparkles size={12} />
               <span>AI SCAN</span>
             </button>
           ) : (
-            <button onClick={handleDelete} className="text-xs font-bold text-expense-red hover:underline">
+            <button onClick={handleDelete} className="text-xs font-bold text-expense-red hover:underline cursor-pointer">
               {t('common.delete')}
             </button>
           )}
         </div>
 
         {/* Form Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 pb-12">
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
           {/* Income vs Outcome Tab */}
           <div className="tab-group flex w-full">
             <button
               type="button"
-              className={`tab-item flex-1 text-center py-2.5 rounded-xl transition font-semibold ${
+              className={`tab-item flex-1 text-center py-2.5 rounded-xl transition font-semibold cursor-pointer ${
                 kind === 'expense' ? 'active text-expense-red' : ''
               }`}
               onClick={() => setKind('expense')}
@@ -179,7 +198,7 @@ export default function AddTransactionDialog({
             </button>
             <button
               type="button"
-              className={`tab-item flex-1 text-center py-2.5 rounded-xl transition font-semibold ${
+              className={`tab-item flex-1 text-center py-2.5 rounded-xl transition font-semibold cursor-pointer ${
                 kind === 'income' ? 'active text-income-green' : ''
               }`}
               onClick={() => setKind('income')}
@@ -206,52 +225,77 @@ export default function AddTransactionDialog({
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full"
+                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Category Selector */}
-          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10">
-            <Tag size={18} className="text-accent-purple" />
-            <div className="flex-1">
-              <label className="text-[10px] text-text-muted block">{t('transaction.category')}</label>
-              <select
-                id="transaction-category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id} className="bg-bg-secondary text-text-primary">
-                    {t(`category.${cat.id}`)}
-                  </option>
-                ))}
-              </select>
+          {/* Category Selector Grid */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] text-text-muted font-bold uppercase tracking-wider pl-1">{t('transaction.category')}</label>
+            <div className="grid grid-cols-4 gap-2 bg-secondary/20 p-2.5 rounded-2xl border border-border/10">
+              {categories.map((cat) => {
+                const IconComponent = IconMap[cat.icon] || MoreHorizontal;
+                const isSelected = category === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategory(cat.id)}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition cursor-pointer select-none ${
+                      isSelected 
+                        ? 'bg-accent-purple/15 border border-accent-purple text-white font-bold' 
+                        : 'border border-transparent text-text-secondary hover:bg-secondary/20'
+                    }`}
+                  >
+                    <div 
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-1 text-white"
+                      style={{ 
+                        backgroundColor: isSelected ? cat.color : `${cat.color}15`,
+                        border: isSelected ? `1px solid ${cat.color}` : `1px solid ${cat.color}25`
+                      }}
+                    >
+                      <IconComponent size={18} color={isSelected ? '#FFFFFF' : cat.color} />
+                    </div>
+                    <span className="text-[10px] truncate w-full text-center">{t(`category.${cat.id}`)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Asset/Payment Method Selector */}
-          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10">
-            <CreditCard size={18} className="text-accent-purple" />
-            <div className="flex-1">
-              <label className="text-[10px] text-text-muted block">{t('transaction.asset')}</label>
-              <select
-                id="transaction-asset"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full"
-              >
-                {PAYMENT_METHODS.map((pm) => (
-                  <option key={pm.id} value={pm.id} className="bg-bg-secondary text-text-primary">
-                    {t(`payment.${pm.id}`)}
-                  </option>
-                ))}
-              </select>
+          {/* Payment Method / Asset Picker */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] text-text-muted font-bold uppercase tracking-wider pl-1">{t('transaction.asset')}</label>
+            <div className="grid grid-cols-5 gap-1.5 bg-secondary/20 p-2 rounded-2xl border border-border/10">
+              {PAYMENT_METHODS.map((pm) => {
+                const isSelected = paymentMethod === pm.id;
+                return (
+                  <button
+                    key={pm.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(pm.id)}
+                    className={`flex flex-col items-center py-2 px-1 rounded-xl transition cursor-pointer select-none text-[10px] ${
+                      isSelected 
+                        ? 'bg-accent-purple/15 border border-accent-purple text-white font-bold' 
+                        : 'border border-transparent text-text-muted hover:bg-secondary/20 hover:text-text-secondary'
+                    }`}
+                  >
+                    <span className="text-lg mb-1 leading-none">
+                      {pm.id === 'cash' && '💵'}
+                      {pm.id === 'bank' && '🏦'}
+                      {pm.id === 'credit_card' && '💳'}
+                      {pm.id === 'e_wallet' && '📱'}
+                      {pm.id === 'savings' && '🐷'}
+                    </span>
+                    <span className="truncate w-full text-center text-[9px] tracking-tight">{t(`payment.${pm.id}`)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Merchant Selector (Optional) */}
+          {/* Merchant Input */}
           <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10">
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
@@ -262,13 +306,13 @@ export default function AddTransactionDialog({
                 value={merchant}
                 onChange={(e) => setMerchant(e.target.value)}
                 placeholder="Merchant/Shop (Optional)"
-                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted"
+                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Notes Selector (Optional) */}
-          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10">
+          {/* Notes Input */}
+          <div className="flex items-center gap-3 p-3 bg-secondary/20 rounded-2xl border border-border/10 mb-8">
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
               <label className="text-[10px] text-text-muted block">{t('transaction.note')}</label>
@@ -278,19 +322,21 @@ export default function AddTransactionDialog({
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Notes (Optional)"
-                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted"
+                className="bg-transparent border-0 text-sm font-semibold text-text-primary focus:ring-0 p-0 w-full placeholder:text-text-muted focus:outline-none"
               />
             </div>
           </div>
         </div>
 
         {/* Calculator Keypad */}
-        <CalculatorKeypad
-          onValueChange={setAmount}
-          onSave={handleSave}
-          onReset={() => setAmount(0)}
-          initialValue={amount}
-        />
+        <div className="flex-shrink-0">
+          <CalculatorKeypad
+            onValueChange={setAmount}
+            onSave={handleSave}
+            onReset={() => setAmount(0)}
+            initialValue={amount}
+          />
+        </div>
       </div>
 
       {/* AI Scan Slip Dialog */}

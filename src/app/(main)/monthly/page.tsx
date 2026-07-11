@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, Plus, ChevronRight, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Calendar, ChevronRight, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { getTransactions } from '@/lib/expenses';
 import type { Transaction } from '@/types';
@@ -29,9 +29,19 @@ export default function MonthlyPage() {
     }
   }, [currentYear]);
 
+  // Load transactions on mount and year change
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  // Listen to bottom navigation center plus button event
+  useEffect(() => {
+    const handleOpenAddTx = () => {
+      setShowAddDialog(true);
+    };
+    window.addEventListener('open-add-transaction', handleOpenAddTx);
+    return () => window.removeEventListener('open-add-transaction', handleOpenAddTx);
+  }, []);
 
   // Group by month
   const monthlyGroups: Record<number, Transaction[]> = {};
@@ -117,11 +127,6 @@ export default function MonthlyPage() {
           })}
         </div>
       )}
-
-      {/* Floating Action Button */}
-      <button onClick={() => setShowAddDialog(true)} className="fab">
-        <Plus size={24} />
-      </button>
 
       {/* Add Dialog */}
       <AddTransactionDialog

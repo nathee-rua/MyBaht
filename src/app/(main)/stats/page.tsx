@@ -8,6 +8,7 @@ import DonutChart from '@/components/stats/DonutChart';
 import CategoryBreakdown from '@/components/stats/CategoryBreakdown';
 import TrendChart from '@/components/stats/TrendChart';
 import LineChart from '@/components/stats/LineChart';
+import AddTransactionDialog from '@/components/transaction/AddTransactionDialog';
 import { Calendar, ChevronLeft, ChevronRight, BarChart3, RefreshCw } from 'lucide-react';
 import { startOfMonth, endOfMonth, format, subMonths, addMonths } from 'date-fns';
 
@@ -17,6 +18,16 @@ export default function StatsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // Listen to bottom navigation center plus button event
+  useEffect(() => {
+    const handleOpenAddTx = () => {
+      setShowAddDialog(true);
+    };
+    window.addEventListener('open-add-transaction', handleOpenAddTx);
+    return () => window.removeEventListener('open-add-transaction', handleOpenAddTx);
+  }, []);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -170,6 +181,12 @@ export default function StatsPage() {
           <span className="text-xs font-semibold">Coming Soon in next update!</span>
         </div>
       )}
+      {/* Add Dialog */}
+      <AddTransactionDialog
+        open={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onSuccess={fetchTransactions}
+      />
     </div>
   );
 }
