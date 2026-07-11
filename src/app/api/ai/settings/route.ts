@@ -39,8 +39,10 @@ export async function POST(req: Request) {
 
     const { error } = await supabase
       .from('user_settings')
-      .update(updatePayload)
-      .eq('user_id', user.id);
+      .upsert({
+        user_id: user.id,
+        ...updatePayload,
+      });
 
     if (error) {
       throw error;
