@@ -55,16 +55,19 @@ export default function MonthlyPage() {
     monthlyGroups[month].push(tx);
   });
 
+  const { language } = useI18n();
+
   const getMonthName = (monthIndex: number) => {
     const d = new Date(currentYear.getFullYear(), monthIndex, 1);
-    return d.toLocaleDateString(undefined, { month: 'long' });
+    const locale = language === 'th' ? 'th-TH' : 'en-US';
+    return d.toLocaleDateString(locale, { month: 'long' });
   };
 
   return (
     <div className="page-container px-4 pt-4 flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-extrabold text-text-primary">Monthly Overview</h1>
+        <h1 className="text-xl font-extrabold text-text-primary">{t('summary.monthlyOverview')}</h1>
         <div className="flex items-center gap-1.5 bg-secondary/30 rounded-xl px-3 py-1.5 border border-border/20 text-xs font-semibold text-text-secondary">
           <Calendar size={14} className="text-accent-purple" />
           <span>{currentYear.getFullYear()}</span>
@@ -92,12 +95,11 @@ export default function MonthlyPage() {
             return (
               <div 
                 key={monthIndex} 
-                className="p-4 flex flex-col gap-3 transition cursor-pointer"
+                className="p-4 flex flex-col gap-3 transition cursor-pointer shadow-sm"
                 style={{ 
-                  background: '#1A1530', 
-                  border: '1px solid #3D3660', 
+                  background: 'var(--color-bg-secondary)', 
+                  border: '1px solid var(--color-border)', 
                   borderRadius: 20,
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
                 }}
               >
                 {/* Month Name and Totals */}
@@ -112,7 +114,7 @@ export default function MonthlyPage() {
                       <TrendingUp size={14} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-text-muted block">Income</span>
+                      <span className="text-[10px] text-text-muted block">{t('transaction.income')}</span>
                       <span className="text-xs font-bold text-income-green">
                         {formatCurrency(income).replace('THB', '').trim()}
                       </span>
@@ -124,7 +126,7 @@ export default function MonthlyPage() {
                       <TrendingDown size={14} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-text-muted block">Outcome</span>
+                      <span className="text-[10px] text-text-muted block">{t('transaction.outcome')}</span>
                       <span className="text-xs font-bold text-expense-red">
                         {formatCurrency(expense).replace('THB', '').trim()}
                       </span>

@@ -126,8 +126,8 @@ const translations: Record<string, Record<Language, string>> = {
   'summary.week': { th: '7 วัน', en: '7 Days' },
   'summary.month': { th: 'เดือนนี้', en: 'This Month' },
   'summary.year': { th: 'ปีนี้', en: 'This Year' },
-  'summary.net': { th: 'คงเหลือ', en: 'Net' },
   'summary.recent': { th: 'รายการล่าสุด', en: 'Recent Expenses' },
+  'summary.monthlyOverview': { th: 'ภาพรวมรายเดือน', en: 'Monthly Overview' },
 
   // Custom Filters
   'filter.thisMonth': { th: 'เดือนนี้', en: 'This Month' },

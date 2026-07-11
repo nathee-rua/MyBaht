@@ -77,6 +77,7 @@ export default function TransactionList({
                 <TransactionItem
                   key={tx.id}
                   transaction={tx}
+                  onClick={() => onEditTransaction?.(tx)}
                   onEdit={() => onEditTransaction?.(tx)}
                   onDelete={() => onDeleteTransaction?.(tx.id)}
                 />

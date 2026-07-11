@@ -43,7 +43,7 @@ export default function TransactionItem({
   return (
     <div
       onClick={onClick}
-      className="transaction-item flex items-center justify-between border-b border-border/20 last:border-0"
+      className="transaction-item flex items-center justify-between border-b border-border/20 last:border-0 cursor-pointer hover:bg-secondary/10 px-1 py-1.5 rounded-xl transition"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         {/* Category Icon */}

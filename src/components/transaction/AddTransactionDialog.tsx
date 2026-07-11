@@ -158,7 +158,7 @@ export default function AddTransactionDialog({
   const categories = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-md bg-bg-primary rounded-t-[28px] border-t border-border flex flex-col h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/20 flex-shrink-0">
@@ -184,7 +184,7 @@ export default function AddTransactionDialog({
         </div>
 
         {/* Form Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4 pb-8 flex flex-col gap-4">
           {/* Income vs Outcome Tab */}
           <div className="tab-group flex w-full">
             <button
@@ -245,7 +245,7 @@ export default function AddTransactionDialog({
                     onClick={() => setCategory(cat.id)}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl transition cursor-pointer select-none ${
                       isSelected 
-                        ? 'bg-accent-purple/15 border border-accent-purple text-white font-bold' 
+                        ? 'bg-accent-purple/15 border border-accent-purple text-text-primary font-bold shadow-sm' 
                         : 'border border-transparent text-text-secondary hover:bg-secondary/20'
                     }`}
                   >
@@ -278,8 +278,8 @@ export default function AddTransactionDialog({
                     onClick={() => setPaymentMethod(pm.id)}
                     className={`flex flex-col items-center py-2 px-1 rounded-xl transition cursor-pointer select-none text-[10px] ${
                       isSelected 
-                        ? 'bg-accent-purple/15 border border-accent-purple text-white font-bold' 
-                        : 'border border-transparent text-text-muted hover:bg-secondary/20 hover:text-text-secondary'
+                        ? 'bg-accent-purple/15 border border-accent-purple text-text-primary font-bold shadow-sm' 
+                        : 'border border-transparent text-text-secondary hover:bg-secondary/20 hover:text-text-primary'
                     }`}
                   >
                     <span className="text-lg mb-1 leading-none">

@@ -97,7 +97,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 backdrop-blur-sm">
       <div className="w-full max-w-md bg-bg-primary rounded-t-3xl border-t border-border flex flex-col h-[85vh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/20 flex-shrink-0">
@@ -111,7 +111,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto p-4 pb-8 flex flex-col gap-4">
           {!result && (
             <div className="flex flex-col gap-3">
               <span className="text-xs text-text-secondary font-medium">
