@@ -534,3 +534,68 @@ export function decryptApiKey(encrypted: string): string {
   }
   return decrypted;
 }
+
+// ===== Default Vision Models Fallbacks =====
+
+export function getDefaultModels(provider: AIProvider): AIModel[] {
+  switch (provider) {
+    case 'openai':
+      return [
+        { id: 'gpt-4o', name: 'GPT-4o', supportsVision: true },
+        { id: 'gpt-4o-mini', name: 'GPT-4o Mini', supportsVision: true },
+        { id: 'o1', name: 'o1', supportsVision: true },
+        { id: 'o3-mini', name: 'o3-mini', supportsVision: true },
+        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', supportsVision: true },
+      ];
+    case 'openrouter':
+      return [
+        { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', supportsVision: true },
+        { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', supportsVision: true },
+        { id: 'meta-llama/llama-3.2-11b-vision-instruct', name: 'Llama 3.2 11B Vision', supportsVision: true },
+        { id: 'qwen/qwen-2.5-vl-72b-instruct', name: 'Qwen 2.5 VL 72B', supportsVision: true },
+        { id: 'deepseek/deepseek-chat', name: 'DeepSeek V3', supportsVision: true },
+      ];
+    case 'google':
+      return [
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', supportsVision: true },
+        { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', supportsVision: true },
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', supportsVision: true },
+        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', supportsVision: true },
+        { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash Exp', supportsVision: true },
+      ];
+    case 'grok':
+      return [
+        { id: 'grok-2-vision-1212', name: 'Grok 2 Vision', supportsVision: true },
+        { id: 'grok-vision-beta', name: 'Grok Vision Beta', supportsVision: true },
+        { id: 'grok-2-1212', name: 'Grok 2 Chat', supportsVision: true },
+        { id: 'grok-beta', name: 'Grok Beta', supportsVision: true },
+        { id: 'grok-3', name: 'Grok 3', supportsVision: true },
+      ];
+    case 'nvidia':
+      return [
+        { id: 'meta/llama-3.2-11b-vision-instruct', name: 'Llama 3.2 11B Vision', supportsVision: true },
+        { id: 'nvidia/llama-3.2-11b-vision-instruct', name: 'NVIDIA Llama 3.2 11B', supportsVision: true },
+        { id: 'meta/llama-3.2-90b-vision-instruct', name: 'Llama 3.2 90B Vision', supportsVision: true },
+        { id: 'microsoft/phi-3-vision-128k-instruct', name: 'Phi-3 Vision', supportsVision: true },
+        { id: 'google/deplot', name: 'Deplot Vision', supportsVision: true },
+      ];
+    case 'opencode':
+      return [
+        { id: 'opencode-zen-vl-7b', name: 'OpenCode Zen VL 7B', supportsVision: true },
+        { id: 'opencode-zen-vl-34b', name: 'OpenCode Zen VL 34B', supportsVision: true },
+        { id: 'qwen2.5-vl-7b', name: 'Qwen 2.5 VL 7B', supportsVision: true },
+        { id: 'llama-3.2-11b-vision', name: 'Llama 3.2 11B Vision', supportsVision: true },
+        { id: 'opencode-zen-vl-72b', name: 'OpenCode Zen VL 72B', supportsVision: true },
+      ];
+    case 'llm7':
+      return [
+        { id: 'llm7-vision-pro', name: 'LLM7 Vision Pro', supportsVision: true },
+        { id: 'llm7-vision-lite', name: 'LLM7 Vision Lite', supportsVision: true },
+        { id: 'gpt-4o-mini', name: 'GPT-4o Mini (LLM7)', supportsVision: true },
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (LLM7)', supportsVision: true },
+        { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet (LLM7)', supportsVision: true },
+      ];
+    default:
+      return [];
+  }
+}

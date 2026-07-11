@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Eye, EyeOff, RefreshCw, Key, ShieldCheck, Sparkles, Check } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import type { AIProvider, UserSettings, AIModel } from '@/types';
-import { AI_PROVIDERS } from '@/lib/ai-providers';
+import { AI_PROVIDERS, getDefaultModels } from '@/lib/ai-providers';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -24,11 +24,23 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
   const [fetchingModels, setFetchingModels] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
 
+  const displayModels = models.length > 0 ? models : getDefaultModels(provider);
+
   useEffect(() => {
     if (open) {
       loadSettings();
     }
   }, [open]);
+
+  // Set default model on provider change if empty or invalid
+  useEffect(() => {
+    if (displayModels.length > 0) {
+      const modelExists = displayModels.some(m => m.id === model);
+      if (!model || !modelExists) {
+        setModel(displayModels[0].id);
+      }
+    }
+  }, [provider, models, model, displayModels]);
 
   const loadSettings = async () => {
     setLoading(true);
@@ -175,14 +187,14 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-bg-secondary border-4 border-accent-purple rounded-none overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
+      <div className="w-full max-w-md bg-bg-secondary border-4 border-accent-purple rounded-none overflow-hidden flex flex-col h-[85vh] animate-scale-in">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
+        <div className="flex items-center justify-center relative px-6 py-5 border-b border-border/20 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles size={18} className="text-accent-purple" />
-            <span className="font-bold text-text-primary">{t('settings.ai')}</span>
+            <span className="font-extrabold text-text-primary text-base">{t('settings.ai')}</span>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-secondary/40 rounded-full text-text-secondary">
+          <button onClick={onClose} className="absolute right-4 p-1 hover:bg-secondary/40 rounded-full text-text-secondary cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -213,10 +225,10 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
                     setModel('');
                     setApiKey('');
                   }}
-                  className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition w-[calc(25%-6px)] min-w-[72px] ${
+                  className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition w-[calc(25%-6px)] min-w-[72px] cursor-pointer ${
                     provider === prov.id
-                      ? 'border-accent-purple bg-accent-purple/10 text-white font-bold'
-                      : 'border-border/40 bg-bg-primary/45 text-text-secondary'
+                      ? 'border-2 border-accent-purple bg-accent-purple/15 text-text-primary font-bold shadow-sm'
+                      : 'border-border/60 bg-bg-primary/80 text-text-secondary hover:bg-bg-tertiary'
                   }`}
                 >
                   <span className="text-xl mb-1">{prov.icon}</span>
@@ -237,7 +249,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder={`Enter your ${provider.toUpperCase()} API Key`}
-                className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl py-3 pl-10 pr-10 text-sm text-text-primary focus:outline-none focus:border-accent-purple placeholder:text-text-muted font-mono"
+                className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl py-3 pl-12 pr-10 text-sm text-text-primary focus:outline-none focus:border-accent-purple placeholder:text-text-muted font-mono"
               />
               <button
                 type="button"
@@ -261,7 +273,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
           </button>
 
           {/* Model Selection */}
-          {models.length > 0 || model ? (
+          {displayModels.length > 0 ? (
             <div className="flex flex-col gap-2 animate-scale-in">
               <label className="text-xs font-semibold text-text-secondary">{t('ai.model')}</label>
               <select
@@ -270,29 +282,23 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
                 onChange={(e) => setModel(e.target.value)}
                 className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl py-3 px-4 text-sm text-text-primary focus:outline-none focus:border-accent-purple"
               >
-                {models.length > 0 ? (
-                  models.map((m) => (
-                    <option key={m.id} value={m.id} className="bg-bg-secondary text-text-primary text-xs">
-                      {m.name} ({m.id})
-                    </option>
-                  ))
-                ) : (
-                  <option value={model} className="bg-bg-secondary text-text-primary text-xs">
-                    {model}
+                {displayModels.map((m) => (
+                  <option key={m.id} value={m.id} className="bg-bg-secondary text-text-primary text-xs">
+                    {m.name} ({m.id})
                   </option>
-                )}
+                ))}
               </select>
             </div>
           ) : null}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-bg-primary/40 border-t border-border/20 flex gap-3">
+        <div className="px-6 py-4 bg-bg-primary/40 border-t border-border/20 flex gap-3 flex-shrink-0 pb-8">
           <button
             type="button"
             onClick={handleTestConnection}
             disabled={testingConnection || !apiKey || !model}
-            className="flex-1 bg-secondary/80 hover:bg-secondary border border-border/40 text-text-primary rounded-2xl py-3 text-xs font-semibold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="flex-1 bg-bg-secondary hover:bg-bg-tertiary border-2 border-border text-text-primary rounded-none py-3.5 text-xs font-black transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
           >
             {testingConnection && <RefreshCw size={12} className="animate-spin" />}
             <span>{t('ai.testConnection')}</span>
@@ -301,7 +307,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
             type="button"
             onClick={handleSave}
             disabled={loading || !model}
-            className="flex-1 bg-accent-purple hover:bg-accent-purple-light text-white rounded-2xl py-3 text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="flex-1 bg-accent-purple hover:bg-accent-purple-light border-2 border-accent-purple-dark text-white rounded-none py-3.5 text-xs font-black transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
           >
             {loading && <RefreshCw size={12} className="animate-spin" />}
             <span>{t('common.save')}</span>
