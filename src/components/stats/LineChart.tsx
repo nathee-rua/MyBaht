@@ -89,15 +89,16 @@ export default function NetLineChart({ transactions }: NetLineChartProps) {
 
   const chartData = useMemo(() => {
     const data = getChartData(transactions, 'monthly');
-    // Calculate running net balance
+    const runningData = [];
     let runningNet = 0;
-    return data.map((point) => {
+    for (const point of data) {
       runningNet += point.net;
-      return {
+      runningData.push({
         ...point,
         cumulativeNet: runningNet,
-      };
-    });
+      });
+    }
+    return runningData;
   }, [transactions]);
 
   const isEmpty = chartData.every(d => d.income === 0 && d.expense === 0);
