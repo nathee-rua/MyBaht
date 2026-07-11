@@ -391,7 +391,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Credit Card / Accounts Carousel widget */}
-        <div className="relative mt-2 mb-3 select-none h-[180px] w-full flex items-center overflow-visible">
+        <div className="relative mt-2 mb-6 select-none h-[180px] w-full flex items-center overflow-visible">
           {/* Peeking card (next card in array) */}
           <div 
             className="absolute right-0 w-[92%] h-[166px] rounded-none opacity-40 -z-10 cursor-pointer transition-all duration-500 hover:opacity-60"
@@ -419,7 +419,7 @@ export default function DashboardPage() {
           
           {/* Active Card */}
           <div 
-            className="w-[90%] h-[176px] rounded-none py-4 px-5 relative overflow-hidden flex flex-col justify-between border-2 border-white/20 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
+            className="w-[90%] mx-auto h-[176px] rounded-none py-4 px-5 relative overflow-hidden flex flex-col justify-between border-2 border-white/20 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
             style={{ 
               background: activeAccount.gradient,
             }}
@@ -481,7 +481,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Indicators for Accounts */}
-        <div className="flex justify-center gap-1.5 mb-5">
+        <div className="flex justify-center gap-1.5 mb-8">
           {ACCOUNTS.map((_, idx) => (
             <button
               key={idx}
@@ -496,7 +496,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Action Outline Pills */}
-        <div className="grid grid-cols-3 gap-2.5 mb-6">
+        <div className="px-4 grid grid-cols-3 gap-2.5 mb-6">
           <button
             type="button"
             onClick={() => {
@@ -550,7 +550,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Date Selector */}
-        <div className="mb-6">
+        <div className="px-4 mb-6">
           <DateSelector
             filter={dateFilter}
             setFilter={setDateFilter}
@@ -560,15 +560,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Spending Breakdown card with chart */}
-        <div 
-          className="p-5 mb-6" 
-          style={{ 
-            background: 'var(--color-bg-secondary)', 
-            border: '1px solid var(--color-border)', 
-            borderRadius: 20, 
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' 
-          }}
-        >
+        <div className="px-4 mb-6">
+          <div 
+            className="p-5" 
+            style={{ 
+              background: 'var(--color-bg-secondary)', 
+              border: '1px solid var(--color-border)', 
+              borderRadius: 20, 
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' 
+            }}
+          >
           <h3 className="text-xs font-black text-text-primary uppercase tracking-wider mb-4 flex items-center justify-between">
             <span>Spending Breakdown</span>
             <span className="text-[10px] text-text-muted font-bold lowercase tracking-normal">this period</span>
@@ -632,16 +633,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Three Dropdown Selectors */}
-      <div className="px-4 mb-6 grid grid-cols-3 gap-2.5">
+      <div className="px-4 mt-6 mb-8 flex justify-center gap-2.5 w-full">
         {/* Timeframe Dropdown */}
-        <div className="relative flex items-center w-full">
+        <div className="relative flex items-center flex-1 max-w-[120px]">
           <select
             value={timeframe}
             onChange={(e) => handleTimeframeChange(e.target.value as any)}
-            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full text-[11px] font-extrabold border shadow-sm focus:outline-none cursor-pointer"
+            className="w-full appearance-none pl-3 pr-8 py-3 rounded-none text-xs font-black border-2 shadow-[2px_2px_0px_0px_rgba(124,58,237,0.2)] focus:outline-none cursor-pointer transition-all active:translate-y-0.5 active:shadow-none"
             style={{
               background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border)',
+              borderColor: 'var(--color-accent-purple)',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -651,18 +652,18 @@ export default function DashboardPage() {
               </option>
             ))}
           </select>
-          <ChevronDown size={12} className="absolute right-3 pointer-events-none text-accent-purple" />
+          <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-accent-purple" />
         </div>
 
         {/* Category Dropdown */}
-        <div className="relative flex items-center w-full">
+        <div className="relative flex items-center flex-1 max-w-[120px]">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full text-[11px] font-extrabold border shadow-sm focus:outline-none cursor-pointer"
+            className="w-full appearance-none pl-3 pr-8 py-3 rounded-none text-xs font-black border-2 shadow-[2px_2px_0px_0px_rgba(124,58,237,0.2)] focus:outline-none cursor-pointer transition-all active:translate-y-0.5 active:shadow-none"
             style={{
               background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border)',
+              borderColor: 'var(--color-accent-purple)',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -672,18 +673,18 @@ export default function DashboardPage() {
               </option>
             ))}
           </select>
-          <ChevronDown size={12} className="absolute right-3 pointer-events-none text-accent-purple" />
+          <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-accent-purple" />
         </div>
 
         {/* Price Range Dropdown */}
-        <div className="relative flex items-center w-full">
+        <div className="relative flex items-center flex-1 max-w-[120px]">
           <select
             value={selectedPriceRange}
             onChange={(e) => setSelectedPriceRange(e.target.value)}
-            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full text-[11px] font-extrabold border shadow-sm focus:outline-none cursor-pointer"
+            className="w-full appearance-none pl-3 pr-8 py-3 rounded-none text-xs font-black border-2 shadow-[2px_2px_0px_0px_rgba(124,58,237,0.2)] focus:outline-none cursor-pointer transition-all active:translate-y-0.5 active:shadow-none"
             style={{
               background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border)',
+              borderColor: 'var(--color-accent-purple)',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -700,7 +701,7 @@ export default function DashboardPage() {
               );
             })}
           </select>
-          <ChevronDown size={12} className="absolute right-3 pointer-events-none text-accent-purple" />
+          <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-accent-purple" />
         </div>
       </div>
 
