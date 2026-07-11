@@ -76,6 +76,7 @@ export default function DashboardPage() {
   const [timeframe, setTimeframe] = useState<'month' | 'week' | 'today'>('month');
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('All Prices');
+  const [showPasteDialog, setShowPasteDialog] = useState(false);
 
 
   // Load username
