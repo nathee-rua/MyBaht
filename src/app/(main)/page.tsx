@@ -351,7 +351,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col min-h-screen page-container">
       {/* Header */}
-      <div className="px-4 pt-5 pb-2">
+      <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between mb-5">
           {showSearch ? (
             <div className="flex-1 relative animate-fade-in">
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                 </button>
                 {/* Profile Avatar */}
                 <div 
-                  className="w-9 h-9 rounded-full ml-1 border border-accent-purple/40 bg-gradient-to-tr from-accent-purple to-accent-purple-light flex items-center justify-center text-white font-black text-sm uppercase shadow-sm cursor-pointer"
+                  className="w-9 h-9 rounded-full ml-1 border border-border bg-bg-secondary flex items-center justify-center text-text-primary font-bold text-sm uppercase cursor-pointer"
                   onClick={() => router.push('/settings')}
                 >
                   {username.charAt(0)}
@@ -403,16 +403,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Simplified Bank-Like Balance Card */}
-        <div className="mt-2 mb-6 select-none w-full">
+        <div className="mt-3 mb-6 select-none w-full">
           <div 
-            className="w-full h-[166px] rounded-2xl py-5 px-6 relative overflow-hidden flex flex-col justify-between border border-border/60 transition-all duration-300 shadow-md"
+            className="w-full h-[154px] rounded-2xl p-[18px] relative overflow-hidden flex flex-col justify-between border border-border/60 transition-all duration-300 shadow-md"
             style={{ 
               background: 'linear-gradient(135deg, #111827 0%, #1F2937 100%)', // Premium dark slate card for both light and dark themes
             }}
           >
             {/* Top row: Account Name & AI Ready Badge */}
             <div className="flex justify-between items-center w-full z-10">
-              <span className="text-[11px] text-gray-400 uppercase tracking-wider font-bold">
+              <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider opacity-[0.72]">
                 {activeAccount.name === 'All Accounts' ? t('card.availableBalance') : `${activeAccount.name}`}
               </span>
               <div className="flex items-center gap-2">
@@ -436,7 +436,7 @@ export default function DashboardPage() {
 
             {/* Center Section: Centered balance with large editorial text */}
             <div className="flex flex-col items-center justify-center my-auto z-10">
-              <span className="text-3xl md:text-4xl font-extrabold text-white tracking-tight flex items-baseline justify-center gap-1.5">
+              <span className="text-[42px] font-bold text-white tracking-tight leading-none flex items-baseline justify-center gap-1.5">
                 <span className="text-sm font-semibold text-gray-400">฿</span>
                 <span>{formatCurrency(getAccountBalance(activeAccount.method)).replace('THB', '').trim()}</span>
               </span>
@@ -473,41 +473,41 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions (Minimalist Editorial Rounded style) */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-2.5 mb-6">
           <button
             type="button"
             onClick={() => {
               setEditingTx(null);
               setShowAddDialog(true);
             }}
-            className="py-3 px-2 rounded-2xl border border-border/60 text-xs font-bold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-2 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
+            className="h-[72px] rounded-2xl border border-border/60 text-[14px] font-semibold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
           >
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple flex-shrink-0">
               <Plus size={18} strokeWidth={2.5} />
             </div>
-            <span>{t('action.addExpense')}</span>
+            <span className="mt-1">{t('action.addExpense')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowScanDialog(true)}
-            className="py-3 px-2 rounded-2xl border border-border/60 text-xs font-bold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-2 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
+            className="h-[72px] rounded-2xl border border-border/60 text-[14px] font-semibold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
           >
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple flex-shrink-0">
               <Camera size={16} />
             </div>
-            <span>{t('action.scanSlip')}</span>
+            <span className="mt-1">{t('action.scanSlip')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowPasteDialog(true)}
-            className="py-3 px-2 rounded-2xl border border-border/60 text-xs font-bold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-2 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
+            className="h-[72px] rounded-2xl border border-border/60 text-[14px] font-semibold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
           >
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple flex-shrink-0">
               <Sparkles size={16} />
             </div>
-            <span>{t('action.pasteText')}</span>
+            <span className="mt-1">{t('action.pasteText')}</span>
           </button>
         </div>
 
@@ -596,13 +596,13 @@ export default function DashboardPage() {
     </div>
 
       {/* Three Dropdown Selectors (Premium Rounded style) */}
-      <div className="px-4 mt-8 mb-8 flex justify-center gap-3 w-full">
+      <div className="px-4 mt-8 mb-3 flex justify-center gap-2 w-full">
         {/* Timeframe Dropdown */}
         <div className="relative flex items-center flex-1 max-w-[125px]">
           <select
             value={timeframe}
             onChange={(e) => handleTimeframeChange(e.target.value as any)}
-            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-2xl text-xs font-bold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
+            className="w-full h-9 appearance-none pl-3 pr-8 rounded-2xl text-[12px] font-semibold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
             style={{
               background: 'var(--color-bg-secondary)',
               color: 'var(--color-text-primary)',
@@ -622,7 +622,7 @@ export default function DashboardPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-2xl text-xs font-bold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
+            className="w-full h-9 appearance-none pl-3 pr-8 rounded-2xl text-[12px] font-semibold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
             style={{
               background: 'var(--color-bg-secondary)',
               color: 'var(--color-text-primary)',
@@ -642,7 +642,7 @@ export default function DashboardPage() {
           <select
             value={selectedPriceRange}
             onChange={(e) => setSelectedPriceRange(e.target.value)}
-            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-2xl text-xs font-bold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
+            className="w-full h-9 appearance-none pl-3 pr-8 rounded-2xl text-[12px] font-semibold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
             style={{
               background: 'var(--color-bg-secondary)',
               color: 'var(--color-text-primary)',
@@ -666,7 +666,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Subtitle bar / Section header for Recent Transactions (Premium Rounded with Divider) */}
-      <div className="px-4 mt-6 mb-2">
+      <div className="px-4 mt-6 mb-2.5">
         <div className="flex items-center justify-between pb-2 border-b border-border/30">
           <span className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
             <span className="w-1.5 h-3 bg-accent-purple rounded-full" />

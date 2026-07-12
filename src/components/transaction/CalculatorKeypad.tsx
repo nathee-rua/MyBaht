@@ -94,50 +94,49 @@ export default function CalculatorKeypad({
   };
 
   return (
-    <div className="flex flex-col gap-2 mt-auto p-4 bg-secondary/80 border-t border-border/40 rounded-t-3xl">
+    <div className="flex flex-col gap-2 mt-auto pt-3 pb-3 px-4 bg-secondary/80 border-t border-border/40">
       {/* Expression / Display preview */}
-      <div className="flex flex-col items-end px-3 py-1 font-mono">
-        <span className="text-xs text-text-muted h-4">{expression}</span>
-        <span className="text-2xl font-bold text-accent-purple-light">{display}</span>
+      <div className="flex flex-col items-end px-3 py-0.5 font-mono">
+        <span className="text-[10px] text-text-muted h-3.5 leading-none">{expression}</span>
+        <span className="text-xl font-bold text-accent-purple-light leading-none">{display}</span>
       </div>
 
       <div className="grid grid-cols-4 gap-2">
-        {/* Operators */}
-        <button onClick={() => handleOperator('+')} className="calc-key calc-key-operator">+</button>
-        <button onClick={() => handleOperator('-')} className="calc-key calc-key-operator">-</button>
-        <button onClick={() => handleOperator('×')} className="calc-key calc-key-operator">×</button>
+        {/* Row 1: C, Backspace, =, / */}
+        <button onClick={handleClear} className="calc-key calc-key-reset flex items-center justify-center">
+          <RefreshCw size={16} />
+        </button>
+        <button onClick={handleBackspace} className="calc-key calc-key-number flex items-center justify-center text-text-secondary">
+          <Delete size={18} />
+        </button>
+        <button onClick={handleEqual} className="calc-key calc-key-operator flex items-center justify-center">
+          <Equal size={18} />
+        </button>
         <button onClick={() => handleOperator('÷')} className="calc-key calc-key-operator">÷</button>
 
-        {/* Numbers 7, 8, 9, Equal */}
+        {/* Row 2: 7, 8, 9, * */}
         <button onClick={() => handleNum('7')} className="calc-key calc-key-number">7</button>
         <button onClick={() => handleNum('8')} className="calc-key calc-key-number">8</button>
         <button onClick={() => handleNum('9')} className="calc-key calc-key-number">9</button>
-        <button onClick={handleEqual} className="calc-key calc-key-operator row-span-2 flex flex-col items-center justify-center gap-1 min-h-[110px]">
-          <Equal size={20} />
-        </button>
+        <button onClick={() => handleOperator('×')} className="calc-key calc-key-operator">×</button>
 
-        {/* Numbers 4, 5, 6 */}
+        {/* Row 3: 4, 5, 6, - */}
         <button onClick={() => handleNum('4')} className="calc-key calc-key-number">4</button>
         <button onClick={() => handleNum('5')} className="calc-key calc-key-number">5</button>
         <button onClick={() => handleNum('6')} className="calc-key calc-key-number">6</button>
+        <button onClick={() => handleOperator('-')} className="calc-key calc-key-operator">-</button>
 
-        {/* Numbers 1, 2, 3, Save */}
+        {/* Row 4: 1, 2, 3, + */}
         <button onClick={() => handleNum('1')} className="calc-key calc-key-number">1</button>
         <button onClick={() => handleNum('2')} className="calc-key calc-key-number">2</button>
         <button onClick={() => handleNum('3')} className="calc-key calc-key-number">3</button>
-        <button onClick={onSave} className="calc-key calc-key-save row-span-2 flex flex-col items-center justify-center gap-1 min-h-[110px]">
-          <Check size={20} />
-          <span className="text-[12px] font-bold uppercase">{t('transaction.save')}</span>
-        </button>
+        <button onClick={() => handleOperator('+')} className="calc-key calc-key-operator">+</button>
 
-        {/* Clear/Reset, 0, Dec, Backspace */}
-        <button onClick={handleClear} className="calc-key calc-key-reset flex flex-col items-center justify-center">
-          <RefreshCw size={16} />
-        </button>
-        <button onClick={() => handleNum('0')} className="calc-key calc-key-number">0</button>
+        {/* Row 5: 0 (col-span-2), . (col-span-1), Save (col-span-1) */}
+        <button onClick={() => handleNum('0')} className="calc-key calc-key-number col-span-2">0</button>
         <button onClick={handleDecimal} className="calc-key calc-key-number">.</button>
-        <button onClick={handleBackspace} className="calc-key calc-key-number flex items-center justify-center">
-          <Delete size={20} />
+        <button onClick={onSave} className="calc-key calc-key-save col-span-1 flex items-center justify-center">
+          <Check size={20} />
         </button>
       </div>
     </div>

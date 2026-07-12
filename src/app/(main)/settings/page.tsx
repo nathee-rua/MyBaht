@@ -55,112 +55,46 @@ function SettingRow({
   onClick?: () => void;
   danger?: boolean;
 }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={(e) => {
-        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '14px 16px',
-        borderRadius: 14,
-        background: hovered
-          ? danger
-            ? 'rgba(239,68,68,0.08)'
-            : `linear-gradient(135deg, ${C.bgSecondary}, ${C.bgTertiary}40)`
-          : danger
-            ? 'rgba(239,68,68,0.04)'
-            : C.bgSecondary,
-        border: `1px solid ${hovered ? (danger ? 'rgba(239,68,68,0.3)' : C.border) : C.borderSubtle}`,
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.2s ease',
-        transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered ? '0 4px 20px rgba(124,58,237,0.08)' : 'none',
-      }}
+      className={`flex items-center justify-between h-[64px] px-4 rounded-[18px] transition-all duration-200 border w-full text-left active:scale-[0.99] select-none cursor-pointer ${
+        danger
+          ? 'border-red-500/20 hover:border-red-500/40 bg-red-500/[0.02] hover:bg-red-500/[0.06] text-red-500 shadow-sm'
+          : 'border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary hover:bg-bg-tertiary/20 hover:border-border/80 shadow-sm hover:shadow-[0_4px_20px_rgba(124,58,237,0.06)]'
+      }`}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="flex items-center gap-3">
         {/* Icon container with gradient */}
         <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            background: iconGradient,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
+          className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+          style={{ background: iconGradient }}
         >
           {icon}
         </div>
         <span
-          style={{
-            fontSize: 14,
-            fontWeight: 600,
-            color: danger ? '#F87171' : C.textPrimary,
-            letterSpacing: '0.01em',
-          }}
+          className={`text-[14px] sm:text-[15px] font-semibold tracking-wide ${
+            danger ? 'text-red-500/90' : 'text-text-primary'
+          }`}
         >
           {label}
         </span>
       </div>
-      {rightContent && <div style={{ flexShrink: 0 }}>{rightContent}</div>}
-    </div>
+      {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
+    </button>
   );
 }
 
 /* ──────────── Section header ──────────── */
 function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        paddingLeft: 4,
-        paddingBottom: 8,
-        paddingTop: 4,
-      }}
-    >
+    <div className="flex items-center gap-2 px-1 pb-1.5 pt-3 leading-none flex-shrink-0">
       {icon}
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: C.textMuted,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-        }}
-      >
+      <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
         {label}
       </span>
     </div>
-  );
-}
-
-/* ──────────── Divider ──────────── */
-function Divider() {
-  return (
-    <div
-      style={{
-        height: 1,
-        background: `linear-gradient(90deg, transparent, ${C.border}60, transparent)`,
-        margin: '4px 0',
-      }}
-    />
   );
 }
 
@@ -252,14 +186,10 @@ export default function SettingsPage() {
   /* ────────── Pill badge for values ────────── */
   const ValuePill = ({ children, color }: { children: React.ReactNode; color?: string }) => (
     <span
+      className="inline-flex items-center justify-center h-6.5 text-[11px] font-semibold px-2.5 rounded-[8px] tracking-wide"
       style={{
-        fontSize: 11,
-        fontWeight: 700,
         color: color || C.accentLight,
-        background: `${color || C.accent}18`,
-        padding: '4px 10px',
-        borderRadius: 8,
-        letterSpacing: '0.02em',
+        background: `${color || C.accent}15`,
       }}
     >
       {children}
@@ -267,130 +197,46 @@ export default function SettingsPage() {
   );
 
   return (
-    <div
-      className="page-container"
-      style={{
-        padding: '16px 16px 32px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 20,
-        minHeight: '100dvh',
-        background: C.bgPrimary,
-      }}
-    >
+    <div className="page-container px-4 py-4 pb-28 flex flex-col gap-5 bg-bg-primary min-h-screen">
       {/* ═══════════ Header ═══════════ */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          paddingBottom: 8,
-        }}
-      >
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: `linear-gradient(135deg, ${C.accent}, ${C.accentLight})`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Settings size={18} color="#fff" />
+      <div className="flex items-center gap-2.5 pb-2">
+        <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-accent-purple to-accent-purple-light flex items-center justify-center flex-shrink-0">
+          <Settings size={20} color="#fff" />
         </div>
-        <h1
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: C.textPrimary,
-            margin: 0,
-            letterSpacing: '-0.02em',
-          }}
-        >
+        <h1 className="text-[28px] font-bold text-text-primary tracking-tight leading-none">
           {t('settings.title')}
         </h1>
       </div>
 
       {/* ═══════════ Account Section (Editorial Minimal style) ═══════════ */}
       <div>
-        <div
-          style={{
-            borderRadius: 16,
-            padding: '20px 18px',
-            background: C.bgSecondary,
-            border: `1px solid ${C.border}`,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-          }}
-        >
+        <div className="h-[108px] px-4 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex items-center gap-3.5 shadow-[0_6px_20px_rgba(17,24,39,0.04)] w-full">
           {/* Neutral avatar */}
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              background: C.bgTertiary,
-              border: `1px solid ${C.border}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <User size={24} color={C.accent} />
+          <div className="w-12 h-12 rounded-[12px] bg-bg-tertiary/40 border border-border/40 flex items-center justify-center flex-shrink-0">
+            <User size={24} className="text-accent-purple" />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: C.textMuted,
-                margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider leading-none mb-0.5">
               MyBaht {t('settings.account')}
             </p>
-            <p
-              style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: C.textPrimary,
-                margin: '4px 0 0',
-              }}
-            >
+            <p className="text-[22px] font-bold text-text-primary leading-none tracking-tight mt-1.5">
               {username}
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', background: 'rgba(16,185,129,0.1)', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div className="flex items-center gap-4 mt-1.5">
+              <span className="h-5 px-2 flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-500 uppercase tracking-wider leading-none">
                 Secure Vault Active
               </span>
             </div>
           </div>
           {/* Status dot */}
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: '#22C55E',
-              flexShrink: 0,
-            }}
-          />
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse" />
         </div>
       </div>
 
-      <Divider />
-
       {/* ═══════════ Preferences ═══════════ */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2.5">
         <SectionHeader
-          icon={<Palette size={13} color={C.textMuted} />}
+          icon={<Palette size={13} className="text-text-muted" />}
           label={language === 'th' ? 'การตั้งค่าทั่วไป' : 'Preferences'}
         />
 
@@ -435,12 +281,10 @@ export default function SettingsPage() {
         />
       </div>
 
-      <Divider />
-
       {/* ═══════════ AI & Automation ═══════════ */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2.5">
         <SectionHeader
-          icon={<Bot size={13} color={C.textMuted} />}
+          icon={<Bot size={13} className="text-text-muted" />}
           label={language === 'th' ? 'AI และระบบอัตโนมัติ' : 'AI & Automation'}
         />
 
@@ -449,7 +293,7 @@ export default function SettingsPage() {
           iconGradient="linear-gradient(135deg, rgba(244,114,182,0.25), rgba(236,72,153,0.1))"
           label={t('settings.ai')}
           rightContent={
-            <ChevronRight size={16} color={C.textMuted} />
+            <ChevronRight size={16} className="text-text-muted" />
           }
           onClick={() => setShowAiDialog(true)}
         />
@@ -459,18 +303,16 @@ export default function SettingsPage() {
           iconGradient="linear-gradient(135deg, rgba(56,189,248,0.25), rgba(14,165,233,0.1))"
           label={t('settings.telegram')}
           rightContent={
-            <ChevronRight size={16} color={C.textMuted} />
+            <ChevronRight size={16} className="text-text-muted" />
           }
           onClick={() => router.push('/settings/telegram')}
         />
       </div>
 
-      <Divider />
-
       {/* ═══════════ Data ═══════════ */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2.5">
         <SectionHeader
-          icon={<Database size={13} color={C.textMuted} />}
+          icon={<Database size={13} className="text-text-muted" />}
           label={language === 'th' ? 'ข้อมูล' : 'Data'}
         />
 
@@ -483,29 +325,20 @@ export default function SettingsPage() {
           rightContent={
             exporting ? (
               <div
-                style={{
-                  width: 16,
-                  height: 16,
-                  border: `2px solid ${C.border}`,
-                  borderTop: '2px solid #34D399',
-                  borderRadius: '50%',
-                  animation: 'spin 0.8s linear infinite',
-                }}
+                className="w-4 h-4 border-2 border-border border-t-emerald-400 rounded-full animate-spin"
               />
             ) : (
-              <ChevronRight size={16} color={C.textMuted} />
+              <ChevronRight size={16} className="text-text-muted" />
             )
           }
           onClick={handleExportCSV}
         />
       </div>
 
-      <Divider />
-
       {/* ═══════════ Danger Zone ═══════════ */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2.5">
         <SectionHeader
-          icon={<ShieldAlert size={13} color={C.textMuted} />}
+          icon={<ShieldAlert size={13} className="text-text-muted" />}
           label={language === 'th' ? 'โซนอันตราย' : 'Danger Zone'}
         />
 
@@ -519,17 +352,11 @@ export default function SettingsPage() {
       </div>
 
       {/* ═══════════ App Version Footer ═══════════ */}
-      <div
-        style={{
-          textAlign: 'center',
-          paddingTop: 12,
-          paddingBottom: 80,
-        }}
-      >
-        <p style={{ fontSize: 11, color: C.textMuted, margin: 0, fontWeight: 500 }}>
+      <div className="text-center py-6 pb-12 mt-2 leading-none flex-shrink-0">
+        <p className="text-[11px] text-text-muted font-semibold">
           MyBaht v1.0.0
         </p>
-        <p style={{ fontSize: 10, color: `${C.textMuted}80`, margin: '4px 0 0', fontWeight: 400 }}>
+        <p className="text-[10px] text-text-muted/70 mt-1.5 font-normal leading-normal">
           {language === 'th' ? 'สร้างด้วย ❤️ สำหรับการจัดการการเงินที่ดีกว่า' : 'Built with ❤️ for better financial management'}
         </p>
       </div>
@@ -539,13 +366,6 @@ export default function SettingsPage() {
 
       {/* ═══════════ Add Transaction Modal ═══════════ */}
       <AddTransactionDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} onSuccess={() => {}} />
-
-      {/* Spinner keyframe (for export loading) */}
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -131,9 +131,9 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-bg-primary rounded-none border-t-4 border-x-4 border-accent-purple flex flex-col h-[85vh] overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-bg-primary rounded-t-[24px] border-t border-x border-border flex flex-col h-[85vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border/20">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-border/20 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-accent-purple" />
             <span className="font-bold text-text-primary">{t('ai.scanSlip')}</span>
@@ -165,29 +165,45 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
           {!file ? (
             /* Upload options */
-            <div className="flex flex-col gap-3 py-8">
+            <div className="flex flex-col gap-2.5">
+              {/* Premium Center Illustration (h-44 = 176px) */}
+              <div className="h-44 w-full rounded-xl bg-bg-tertiary/40 border border-border/40 flex flex-col items-center justify-center text-center p-4 mb-1">
+                <div className="w-14 h-14 rounded-full bg-accent-purple/10 flex items-center justify-center text-accent-purple mb-2 flex-shrink-0">
+                  <Camera size={26} />
+                </div>
+                <span className="text-[14px] font-bold text-text-primary block">AI Receipt Scanner</span>
+                <span className="text-[13px] text-text-secondary mt-0.5 leading-relaxed max-w-[28ch]">
+                  Supports JPG, PNG, PDF up to 10MB
+                </span>
+              </div>
+
+              {/* Primary Option: Take Photo (h-13 = 52px) */}
               <button
                 type="button"
                 onClick={triggerCamera}
-                className="flex items-center justify-center gap-3 bg-accent-purple/10 border border-accent-purple/30 hover:bg-accent-purple/20 rounded-2xl p-5 text-sm font-bold text-accent-purple-light transition"
+                className="flex items-center justify-center gap-3 bg-accent-purple text-white hover:bg-accent-purple-light rounded-xl h-13 text-[14px] font-semibold transition cursor-pointer"
               >
-                <Camera size={24} />
+                <Camera size={20} />
                 <span>Take Photo of Receipt</span>
               </button>
+
+              {/* Secondary Option: Upload Photo (h-12 = 48px) */}
               <button
                 type="button"
                 onClick={triggerUpload}
-                className="flex items-center justify-center gap-3 bg-secondary/30 border border-border/40 hover:bg-border/30 rounded-2xl p-5 text-sm font-bold text-text-primary transition"
+                className="flex items-center justify-center gap-3 bg-bg-secondary border border-border/60 hover:bg-bg-tertiary rounded-xl h-12 text-[14px] font-semibold text-text-primary transition cursor-pointer"
               >
-                <Upload size={24} />
+                <Upload size={18} className="text-text-secondary" />
                 <span>Upload Receipt Photo</span>
               </button>
+
+              {/* Secondary Option: Upload PDF (h-12 = 48px) */}
               <button
                 type="button"
-                onClick={triggerUpload}
-                className="flex items-center justify-center gap-3 bg-secondary/30 border border-border/40 hover:bg-border/30 rounded-2xl p-5 text-sm font-bold text-text-primary transition"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center justify-center gap-3 bg-bg-secondary border border-border/60 hover:bg-bg-tertiary rounded-xl h-12 text-[14px] font-semibold text-text-primary transition cursor-pointer"
               >
-                <FileText size={24} />
+                <FileText size={18} className="text-text-secondary" />
                 <span>Upload PDF E-Slip</span>
               </button>
             </div>
@@ -241,12 +257,12 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
               {/* Parsed Result Form */}
               {result && (
                 <div 
-                  className="p-5 flex flex-col gap-4 animate-scale-in"
+                  className="p-3.5 flex flex-col gap-4 animate-scale-in"
                   style={{
                     background: 'var(--color-bg-secondary)',
                     border: '1px solid var(--color-border)',
-                    borderRadius: '20px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                    borderRadius: '18px',
+                    boxShadow: '0 6px 20px rgba(17, 24, 39, 0.06)',
                   }}
                 >
                   <h3 
@@ -259,7 +275,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
                   {/* Amount */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.amount')}</label>
+                    <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{t('transaction.amount')}</label>
                     <input
                       id="scan-amount"
                       type="number"
@@ -278,7 +294,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
                   {/* Category */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.category')}</label>
+                    <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{t('transaction.category')}</label>
                     <select
                       id="scan-category"
                       value={result.category}
@@ -302,7 +318,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
                   {/* Date */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.date')}</label>
+                    <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{t('transaction.date')}</label>
                     <input
                       id="scan-date"
                       type="date"
@@ -321,7 +337,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
                   {/* Asset / Payment Method */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.asset')}</label>
+                    <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{t('transaction.asset')}</label>
                     <select
                       id="scan-asset"
                       value={result.payment_method}
@@ -345,7 +361,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
                   {/* Merchant */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.merchant')}</label>
+                    <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{t('transaction.merchant')}</label>
                     <input
                       id="scan-merchant"
                       type="text"
@@ -365,7 +381,7 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
 
                   {/* Notes */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.note')}</label>
+                    <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{t('transaction.note')}</label>
                     <input
                       id="scan-note"
                       type="text"
@@ -386,13 +402,11 @@ export default function ScanSlipDialog({ open, onClose, onSuccess }: ScanSlipDia
                   <button
                     type="button"
                     onClick={handleConfirm}
-                    className="w-full text-sm font-bold transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
+                    className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer text-white"
                     style={{
                       background: '#22C55E',
-                      color: '#FFFFFF',
-                      padding: '14px',
-                      borderRadius: '14px',
-                      boxShadow: '0 4px 12px rgba(34, 197, 94, 0.25)',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)',
                     }}
                   >
                     <Check size={16} />

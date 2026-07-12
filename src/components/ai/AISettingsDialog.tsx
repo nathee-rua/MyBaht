@@ -221,175 +221,183 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-bg-secondary border-4 border-accent-purple rounded-none overflow-hidden flex flex-col h-[85vh] animate-scale-in">
+      <div className="w-[calc(100%-16px)] mx-2 my-2 max-w-md bg-bg-secondary border border-border rounded-2xl overflow-hidden flex flex-col h-[85vh] animate-scale-in shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-center relative px-6 py-5 border-b border-border/20 flex-shrink-0">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-border/20 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles size={18} className="text-accent-purple" />
-            <span className="font-extrabold text-text-primary text-base">{t('settings.ai')}</span>
+            <span className="font-bold text-text-primary text-base">{t('settings.ai')}</span>
           </div>
-          <button onClick={onClose} className="absolute right-4 p-1 hover:bg-secondary/40 rounded-full text-text-secondary cursor-pointer">
+          <button onClick={onClose} className="p-1 hover:bg-secondary/40 rounded-full text-text-secondary cursor-pointer">
             <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-accent-purple/5 border border-accent-purple/20 text-xs text-text-secondary">
-            <div className="flex items-center gap-1.5 font-bold text-accent-purple-light">
-              <ShieldCheck size={14} />
-              <span>Secure Storage</span>
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
+          {/* Section 1: Provider Credentials & Storage Banner */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-accent-purple/5 border border-accent-purple/20 text-xs text-text-secondary">
+              <div className="flex items-center gap-1.5 font-bold text-accent-purple-light">
+                <ShieldCheck size={14} />
+                <span>Secure Storage</span>
+              </div>
+              <p className="mt-0.5 leading-relaxed">
+                Your API keys are encrypted at the database level using pgcrypto. They are decrypted only during server-side AI requests.
+              </p>
             </div>
-            <p className="mt-0.5 leading-relaxed">
-              Your API keys are encrypted at the database level using pgcrypto. They are decrypted only during server-side AI requests.
-            </p>
-          </div>
 
-          {/* Provider Selection */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary">{t('ai.provider')}</label>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {AI_PROVIDERS.map((prov) => (
+            {/* Provider Selection */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[12px] font-bold text-text-secondary pl-1 block">{t('ai.provider')}</label>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1.5 px-1 scrollbar-none w-full">
+                {AI_PROVIDERS.map((prov) => (
+                  <button
+                    key={prov.id}
+                    type="button"
+                    onClick={() => {
+                      setProvider(prov.id);
+                      setModels([]);
+                      setModel('');
+                      setApiKey('');
+                    }}
+                    className={`flex items-center justify-center gap-2 h-12 px-4 min-w-[96px] rounded-xl border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 text-[12px] font-semibold ${
+                      provider === prov.id
+                        ? 'border border-accent-purple bg-accent-purple/10 text-text-primary font-bold shadow-sm'
+                        : 'border-border/60 bg-bg-primary text-text-secondary hover:bg-bg-tertiary'
+                    }`}
+                  >
+                    <span className="text-[20px] leading-none flex-shrink-0">{prov.icon}</span>
+                    <span>{prov.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* API Key Input */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[12px] font-bold text-text-secondary pl-1 block">{t('ai.apiKey')}</label>
+              <div className="relative">
+                <Key size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                <input
+                  id="ai-api-key"
+                  type={showKey ? 'text' : 'password'}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder={`Enter your ${provider.toUpperCase()} API Key`}
+                  className="w-full h-12 bg-bg-primary/50 border border-border/60 rounded-xl pl-10 pr-10 text-sm text-text-primary focus:outline-none focus:border-accent-purple placeholder:text-text-muted font-mono"
+                />
                 <button
-                  key={prov.id}
                   type="button"
-                  onClick={() => {
-                    setProvider(prov.id);
-                    setModels([]);
-                    setModel('');
-                    setApiKey('');
-                  }}
-                  className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition w-[calc(25%-6px)] min-w-[72px] cursor-pointer ${
-                    provider === prov.id
-                      ? 'border-2 border-accent-purple bg-accent-purple/15 text-text-primary font-bold shadow-sm'
-                      : 'border-border/60 bg-bg-primary/80 text-text-secondary hover:bg-bg-tertiary'
-                  }`}
+                  onClick={() => setShowKey(!showKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
                 >
-                  <span className="text-xl mb-1">{prov.icon}</span>
-                  <span className="text-[10px] truncate w-full text-center">{prov.name}</span>
+                  {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* API Key Input */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-text-secondary">{t('ai.apiKey')}</label>
-            <div className="relative">
-              <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input
-                id="ai-api-key"
-                type={showKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={`Enter your ${provider.toUpperCase()} API Key`}
-                className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl py-3 pl-12 pr-10 text-sm text-text-primary focus:outline-none focus:border-accent-purple placeholder:text-text-muted font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-              >
-                {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Fetch Models Button */}
-          <button
-            type="button"
-            onClick={handleFetchModels}
-            disabled={fetchingModels || !apiKey}
-            className="flex items-center justify-center gap-2 bg-secondary/50 border border-border/40 hover:bg-border/30 rounded-2xl py-2.5 text-xs font-semibold text-text-primary transition disabled:opacity-50"
-          >
-            {fetchingModels ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-            <span>Fetch Available Vision Models</span>
-          </button>
-
-          {/* Model Selection */}
-          {displayModels.length > 0 ? (
-            <div className="flex flex-col gap-2 animate-scale-in">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-text-secondary">
-                  {t('ai.model')} / Location for fetching models
-                </label>
-                {/* Arrow controllers */}
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={handlePrevModel}
-                    disabled={filteredModels.length <= 1}
-                    className="p-1 hover:bg-secondary/40 border border-border/40 rounded text-text-secondary cursor-pointer disabled:opacity-30"
-                    title="Previous Model"
-                  >
-                    <ChevronUp size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNextModel}
-                    disabled={filteredModels.length <= 1}
-                    className="p-1 hover:bg-secondary/40 border border-border/40 rounded text-text-secondary cursor-pointer disabled:opacity-30"
-                    title="Next Model"
-                  >
-                    <ChevronDown size={14} />
-                  </button>
-                </div>
               </div>
+            </div>
+          </div>
 
-              {/* Free Filter & Helper */}
-              <div className="flex items-center justify-between bg-bg-primary/30 p-1.5 rounded-lg border border-border/20">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="free-models-only"
-                    checked={showFreeOnly}
-                    onChange={(e) => setShowFreeOnly(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded border-border text-accent-purple focus:ring-accent-purple cursor-pointer"
-                  />
-                  <label htmlFor="free-models-only" className="text-[11px] font-semibold text-text-secondary cursor-pointer select-none">
-                    Show Free Models Only
+          <hr className="border-border/40" />
+
+          {/* Section 2: Model Management */}
+          <div className="flex flex-col gap-4">
+            {/* Fetch Models Button */}
+            <button
+              type="button"
+              onClick={handleFetchModels}
+              disabled={fetchingModels || !apiKey}
+              className="flex items-center justify-center gap-2 h-11 bg-bg-tertiary border border-border/40 hover:bg-border/60 rounded-xl w-full text-[12px] font-semibold text-text-primary transition disabled:opacity-50"
+            >
+              {fetchingModels ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              <span>Fetch Available Vision Models</span>
+            </button>
+
+            {/* Model Selection */}
+            {displayModels.length > 0 ? (
+              <div className="flex flex-col gap-2 animate-scale-in">
+                <div className="flex items-center justify-between">
+                  <label className="text-[12px] font-bold text-text-secondary pl-1 block">
+                    {t('ai.model')} / Available Models
                   </label>
-                </div>
-                <span className="text-[9px] text-text-muted font-bold">
-                  {filteredModels.length} models
-                </span>
-              </div>
-
-              {/* Models List Container (approx. 10 lines) */}
-              <div className="w-full bg-bg-primary/50 border border-border/60 rounded-2xl p-1.5 h-[230px] overflow-y-auto flex flex-col gap-1">
-                {filteredModels.length > 0 ? (
-                  filteredModels.map((m) => (
+                  {/* Arrow controllers */}
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      key={m.id}
-                      onClick={() => setModel(m.id)}
-                      className={`w-full text-left px-3 py-2 text-xs flex justify-between items-center transition-colors cursor-pointer rounded-xl ${
-                        model === m.id
-                          ? 'bg-accent-purple/20 text-accent-purple font-bold border-l-4 border-accent-purple'
-                          : 'text-text-primary hover:bg-secondary/40'
-                      }`}
+                      onClick={handlePrevModel}
+                      disabled={filteredModels.length <= 1}
+                      className="p-1 hover:bg-secondary/40 border border-border/40 rounded text-text-secondary cursor-pointer disabled:opacity-30"
+                      title="Previous Model"
                     >
-                      <span className="truncate pr-2 font-semibold">{m.name}</span>
-                      <span className="text-[9px] text-text-muted font-mono truncate max-w-[150px]">{m.id}</span>
+                      <ChevronUp size={14} />
                     </button>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-xs text-text-muted">
-                    No models match the filter.
+                    <button
+                      type="button"
+                      onClick={handleNextModel}
+                      disabled={filteredModels.length <= 1}
+                      className="p-1 hover:bg-secondary/40 border border-border/40 rounded text-text-secondary cursor-pointer disabled:opacity-30"
+                      title="Next Model"
+                    >
+                      <ChevronDown size={14} />
+                    </button>
                   </div>
-                )}
+                </div>
+
+                {/* Free Filter & Helper */}
+                <div className="flex items-center justify-between h-9 px-3 bg-bg-primary/30 rounded-xl border border-border/20 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="free-models-only"
+                      checked={showFreeOnly}
+                      onChange={(e) => setShowFreeOnly(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded border-border text-accent-purple focus:ring-accent-purple cursor-pointer"
+                    />
+                    <label htmlFor="free-models-only" className="text-[11px] font-semibold text-text-secondary cursor-pointer select-none">
+                      Show Free Models Only
+                    </label>
+                  </div>
+                  <span className="text-[9px] text-text-muted font-bold">
+                    {filteredModels.length} models
+                  </span>
+                </div>
+
+                {/* Models List Container */}
+                <div className="w-full bg-bg-primary/50 border border-border/60 rounded-xl p-1.5 h-[180px] overflow-y-auto flex flex-col gap-1">
+                  {filteredModels.length > 0 ? (
+                    filteredModels.map((m) => (
+                      <button
+                        type="button"
+                        key={m.id}
+                        onClick={() => setModel(m.id)}
+                        className={`w-full text-left px-3 h-10 text-xs flex justify-between items-center transition-all cursor-pointer rounded-lg ${
+                          model === m.id
+                            ? 'bg-accent-purple/10 text-accent-purple font-bold border border-accent-purple/20'
+                            : 'text-text-primary hover:bg-secondary/30'
+                        }`}
+                      >
+                        <span className="truncate pr-2 font-semibold">{m.name}</span>
+                        <span className="text-[9px] text-text-muted font-mono truncate max-w-[150px]">{m.id}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-xs text-text-muted">
+                      No models match the filter.
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-bg-primary/40 border-t border-border/20 flex gap-3 flex-shrink-0 pb-8">
+        <div className="px-4 py-3 bg-bg-secondary border-t border-border/20 flex gap-2 flex-shrink-0">
           <button
             type="button"
             onClick={handleTestConnection}
             disabled={testingConnection || !apiKey || !model}
-            className="flex-1 bg-bg-secondary hover:bg-bg-tertiary border-2 border-border text-text-primary rounded-none py-3.5 text-xs font-black transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+            className="w-[40%] h-12 bg-bg-tertiary hover:bg-bg-tertiary/80 border border-border text-text-primary rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
           >
             {testingConnection && <RefreshCw size={12} className="animate-spin" />}
             <span>{t('ai.testConnection')}</span>
@@ -398,7 +406,7 @@ export default function AISettingsDialog({ open, onClose }: AISettingsDialogProp
             type="button"
             onClick={handleSave}
             disabled={loading || !model}
-            className="flex-1 bg-accent-purple hover:bg-accent-purple-light border-2 border-accent-purple-dark text-white rounded-none py-3.5 text-xs font-black transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
+            className="w-[60%] h-12 bg-accent-purple hover:bg-accent-purple-light text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
           >
             {loading && <RefreshCw size={12} className="animate-spin" />}
             <span>{t('common.save')}</span>

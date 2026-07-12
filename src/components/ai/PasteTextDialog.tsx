@@ -98,9 +98,9 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-bg-primary rounded-none border-t-4 border-x-4 border-accent-purple flex flex-col h-[85vh] overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-bg-primary rounded-t-[24px] border-t border-x border-border flex flex-col h-[85vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border/20 flex-shrink-0">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-border/20 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-accent-purple" />
             <span className="font-bold text-text-primary">{t('action.pasteText')}</span>
@@ -113,10 +113,16 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-4 pb-8 flex flex-col gap-4">
           {!result && (
-            <div className="flex flex-col gap-3">
-              <span className="text-xs text-text-secondary font-medium">
+            <div className="flex flex-col gap-4">
+              <span className="text-[13px] font-normal text-text-secondary leading-relaxed max-w-[34ch]">
                 Copy bank alerts, SMS alerts, LINE Alerts or transfer messages and paste them below:
               </span>
+
+              {/* Example box (min-height 72px, padding 14px) */}
+              <div className="bg-bg-tertiary/40 border border-border/40 p-3.5 rounded-xl min-h-[72px] flex flex-col justify-center text-xs text-text-muted">
+                <span className="font-bold text-text-secondary uppercase tracking-wider block mb-1">Example Text Format:</span>
+                <p>"K-Bank: Transfer of 350.00 THB to Starbucks. Ref code 88279 at 15:30."</p>
+              </div>
               
               {/* Text Area Input */}
               <div className="relative">
@@ -125,7 +131,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="Example: K-Bank: paid 350.00 THB to STARBUCKS at 15:30 on 11/07/2026."
-                  className="w-full h-44 p-3 text-sm font-medium rounded-2xl outline-none focus:ring-2 focus:ring-accent-purple/50 transition-all placeholder:text-text-muted resize-none"
+                  className="w-full min-h-[180px] p-3.5 text-sm font-medium rounded-xl outline-none focus:ring-2 focus:ring-accent-purple/50 transition-all placeholder:text-text-muted resize-none animate-fade-in"
                   style={{
                     background: 'var(--color-bg-tertiary)',
                     border: '1px solid var(--color-border)',
@@ -133,26 +139,26 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
                   }}
                 />
                 
-                {/* Clipboard Paste button */}
+                {/* Clipboard Paste button (Ghost secondary button height 36px) */}
                 <button
                   type="button"
                   onClick={handlePasteFromClipboard}
-                  className="absolute right-3.5 bottom-3.5 p-2 rounded-xl bg-accent-purple/10 border border-accent-purple/20 text-accent-purple hover:bg-accent-purple/20 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                  className="absolute right-3 bottom-3 h-9 px-3 rounded-lg bg-bg-secondary/90 border border-border text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
                 >
                   <Clipboard size={14} />
                   <span>Paste Clipboard</span>
                 </button>
               </div>
 
-              {/* Action Button */}
+              {/* Action Button (Height 48px) */}
               <button
                 type="button"
                 disabled={analyzing || !text.trim()}
                 onClick={handleAnalyze}
-                className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all cursor-pointer select-none text-white text-sm"
+                className="w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all cursor-pointer select-none text-white text-sm"
                 style={{
                   background: 'var(--color-accent-purple)',
-                  boxShadow: '0 4px 14px rgba(124, 58, 237, 0.3)',
+                  boxShadow: '0 4px 14px rgba(124, 58, 237, 0.15)',
                   opacity: analyzing || !text.trim() ? 0.6 : 1,
                 }}
               >
@@ -168,18 +174,24 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
                   </>
                 )}
               </button>
+
+              {/* Empty Helper State */}
+              <div className="p-4 rounded-xl border border-dashed border-border/60 bg-bg-secondary/20 min-h-[100px] flex flex-col items-center justify-center text-xs text-text-muted text-center">
+                <Sparkles size={16} className="text-accent-purple/40 mb-2 animate-pulse" />
+                <span>Parsed transaction preview will appear here.</span>
+              </div>
             </div>
           )}
 
           {/* Parsed Results Details */}
           {result && (
             <div 
-              className="p-5 flex flex-col gap-4 animate-scale-in"
+              className="p-3.5 flex flex-col gap-4 animate-scale-in"
               style={{
                 background: 'var(--color-bg-secondary)',
                 border: '1px solid var(--color-border)',
-                borderRadius: '20px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                borderRadius: '18px',
+                boxShadow: '0 6px 20px rgba(17, 24, 39, 0.06)',
               }}
             >
               <h3 
@@ -192,7 +204,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
               {/* Amount */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.amount')}</label>
+                <label className="text-[11px] text-text-secondary font-semibold uppercase tracking-wider">{t('transaction.amount')}</label>
                 <input
                   id="scan-amount"
                   type="number"
@@ -211,7 +223,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
               {/* Category */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.category')}</label>
+                <label className="text-[11px] text-text-secondary font-semibold uppercase tracking-wider">{t('transaction.category')}</label>
                 <select
                   id="scan-category"
                   value={result.category}
@@ -235,7 +247,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
               {/* Date */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.date')}</label>
+                <label className="text-[11px] text-text-secondary font-semibold uppercase tracking-wider">{t('transaction.date')}</label>
                 <input
                   id="scan-date"
                   type="date"
@@ -254,7 +266,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
               {/* Asset / Payment Method */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.asset')}</label>
+                <label className="text-[11px] text-text-secondary font-semibold uppercase tracking-wider">{t('transaction.asset')}</label>
                 <select
                   id="scan-asset"
                   value={result.payment_method}
@@ -278,7 +290,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
               {/* Merchant */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.merchant')}</label>
+                <label className="text-[11px] text-text-secondary font-semibold uppercase tracking-wider">{t('transaction.merchant')}</label>
                 <input
                   id="scan-merchant"
                   type="text"
@@ -298,7 +310,7 @@ export default function PasteTextDialog({ open, onClose, onSuccess }: PasteTextD
 
               {/* Notes */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider">{t('transaction.note')}</label>
+                <label className="text-[11px] text-text-secondary font-semibold uppercase tracking-wider">{t('transaction.note')}</label>
                 <input
                   id="scan-note"
                   type="text"

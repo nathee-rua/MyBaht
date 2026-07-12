@@ -159,9 +159,9 @@ export default function AddTransactionDialog({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-bg-primary rounded-none border-t-4 border-x-4 border-accent-purple flex flex-col h-[90vh] overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-bg-primary rounded-t-[24px] border-t border-x border-border flex flex-col h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border/20 flex-shrink-0">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-border/20 flex-shrink-0">
           <button onClick={onClose} className="p-1 hover:bg-secondary/40 rounded-full text-text-secondary cursor-pointer">
             <X size={20} />
           </button>
@@ -171,7 +171,7 @@ export default function AddTransactionDialog({
           {!editTransaction ? (
             <button
               onClick={() => setShowScanDialog(true)}
-              className="flex items-center gap-1 text-xs font-bold text-accent-purple bg-accent-purple/10 px-3 py-1.5 rounded-full border border-accent-purple/30 hover:bg-accent-purple/20 transition cursor-pointer"
+              className="flex items-center gap-1 text-[12px] font-semibold text-accent-purple bg-accent-purple/10 px-3 py-1 rounded-full border border-accent-purple/30 hover:bg-accent-purple/20 transition cursor-pointer"
             >
               <Sparkles size={12} />
               <span>AI SCAN</span>
@@ -179,7 +179,7 @@ export default function AddTransactionDialog({
           ) : (
             <button 
               onClick={handleDelete} 
-              className="bg-expense-red text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-[0_3px_10px_rgba(239,68,68,0.3)] hover:bg-red-600 active:scale-95 transition cursor-pointer"
+              className="bg-expense-red/10 border border-expense-red/30 text-expense-red px-3.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-expense-red/20 active:scale-95 transition cursor-pointer"
             >
               {t('common.delete')}
             </button>
@@ -187,13 +187,13 @@ export default function AddTransactionDialog({
         </div>
 
         {/* Form Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 pb-8 flex flex-col gap-4">
-          {/* Income vs Outcome Tab */}
-          <div className="tab-group flex w-full">
+        <div className="flex-1 overflow-y-auto px-4 py-3 pb-4 flex flex-col gap-2.5">
+          {/* Income vs Outcome Tab (Segment Toggle height 44px) */}
+          <div className="flex w-full h-11 p-0.5 bg-bg-tertiary/40 border border-border/40 rounded-xl flex-shrink-0">
             <button
               type="button"
-              className={`tab-item flex-1 text-center py-2.5 rounded-xl transition font-semibold cursor-pointer ${
-                kind === 'expense' ? 'active text-expense-red' : ''
+              className={`flex-1 flex items-center justify-center h-10 rounded-lg transition text-xs font-semibold cursor-pointer ${
+                kind === 'expense' ? 'bg-white dark:bg-bg-secondary text-expense-red shadow-sm' : 'text-text-secondary'
               }`}
               onClick={() => setKind('expense')}
             >
@@ -201,8 +201,8 @@ export default function AddTransactionDialog({
             </button>
             <button
               type="button"
-              className={`tab-item flex-1 text-center py-2.5 rounded-xl transition font-semibold cursor-pointer ${
-                kind === 'income' ? 'active text-income-green' : ''
+              className={`flex-1 flex items-center justify-center h-10 rounded-lg transition text-xs font-semibold cursor-pointer ${
+                kind === 'income' ? 'bg-white dark:bg-bg-secondary text-income-green shadow-sm' : 'text-text-secondary'
               }`}
               onClick={() => setKind('income')}
             >
@@ -210,19 +210,19 @@ export default function AddTransactionDialog({
             </button>
           </div>
 
-          {/* Amount Display */}
-          <div className="flex flex-col items-center justify-center py-4 bg-secondary/30 rounded-2xl border border-border/30">
-            <span className="text-xs text-text-muted">{t('transaction.amount')} (THB)</span>
-            <span className={`text-3xl font-extrabold mt-1 ${kind === 'expense' ? 'text-expense-red' : 'text-income-green'}`}>
+          {/* Amount Display (Min-height 88px) */}
+          <div className="flex flex-col items-center justify-center min-h-[88px] py-2.5 bg-secondary/30 rounded-2xl border border-border/30 flex-shrink-0">
+            <span className="text-[13px] font-medium text-text-muted">{t('transaction.amount')} (THB)</span>
+            <span className={`${String(amount).length > 6 ? 'text-[42px]' : 'text-[48px]'} font-bold tracking-tight mt-0.5 leading-none ${kind === 'expense' ? 'text-expense-red' : 'text-income-green'}`} style={{ fontFamily: 'var(--font-sans)' }}>
               {formatCurrency(amount).replace('THB', '').trim()}
             </span>
           </div>
 
-          {/* Date Selector */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
+          {/* Date Selector (Height 48px) */}
+          <div className="flex items-center gap-3 h-12 px-3 rounded-2xl flex-shrink-0" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
             <CalendarIcon size={18} className="text-accent-purple" />
             <div className="flex-1">
-              <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.date')}</label>
+              <label className="text-[11px] font-semibold text-text-secondary block leading-none mb-0.5">{t('transaction.date')}</label>
               <input
                 id="transaction-date"
                 type="date"
@@ -234,9 +234,9 @@ export default function AddTransactionDialog({
             </div>
           </div>
 
-          {/* Category Selector Grid */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider pl-1">{t('transaction.category')}</label>
+          {/* Category Selector Grid (Item height 64px, icon 36px, text 12px) */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-bold text-text-secondary pl-1 block">{t('transaction.category')}</label>
             <div className="grid grid-cols-4 gap-2 p-2.5 rounded-2xl animate-fade-in" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
               {categories.map((cat) => {
                 const IconComponent = IconMap[cat.icon] || MoreHorizontal;
@@ -246,32 +246,32 @@ export default function AddTransactionDialog({
                     key={cat.id}
                     type="button"
                     onClick={() => setCategory(cat.id)}
-                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition cursor-pointer select-none ${
+                    className={`flex flex-col items-center justify-center h-[64px] rounded-xl transition cursor-pointer select-none ${
                       isSelected 
                         ? 'bg-accent-purple/15 border border-accent-purple text-text-primary font-bold shadow-sm' 
                         : 'border border-transparent text-text-secondary hover:bg-secondary/20'
                     }`}
                   >
                     <div 
-                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-1 text-white"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center mb-0.5 text-white flex-shrink-0"
                       style={{ 
                         backgroundColor: isSelected ? cat.color : `${cat.color}15`,
                         border: isSelected ? `1px solid ${cat.color}` : `1px solid ${cat.color}25`
                       }}
                     >
-                      <IconComponent size={18} color={isSelected ? '#FFFFFF' : cat.color} />
+                      <IconComponent size={16} color={isSelected ? '#FFFFFF' : cat.color} />
                     </div>
-                    <span className="text-[10px] truncate w-full text-center">{t(`category.${cat.id}`)}</span>
+                    <span className="text-[12px] font-semibold truncate w-full text-center leading-tight">{t(`category.${cat.id}`)}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Payment Method / Asset Picker */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] text-text-secondary font-extrabold uppercase tracking-wider pl-1">{t('transaction.asset')}</label>
-            <div className="grid grid-cols-5 gap-1.5 p-2 rounded-2xl" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
+          {/* Payment Method / Asset Picker (Horizontal Scroll chips 40px px-3) */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-bold text-text-secondary pl-1 block">{t('transaction.asset')}</label>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 px-1 scrollbar-none w-full">
               {PAYMENT_METHODS.map((pm) => {
                 const isSelected = paymentMethod === pm.id;
                 return (
@@ -279,31 +279,31 @@ export default function AddTransactionDialog({
                     key={pm.id}
                     type="button"
                     onClick={() => setPaymentMethod(pm.id)}
-                    className={`flex flex-col items-center py-2 px-1 rounded-xl transition cursor-pointer select-none text-[10px] ${
+                    className={`flex items-center gap-2 h-10 px-3 rounded-full transition cursor-pointer select-none text-[12px] font-semibold whitespace-nowrap flex-shrink-0 ${
                       isSelected 
                         ? 'bg-accent-purple/15 border border-accent-purple text-text-primary font-bold shadow-sm' 
-                        : 'border border-transparent text-text-secondary hover:bg-secondary/20 hover:text-text-primary'
+                        : 'bg-bg-tertiary border border-border/40 text-text-secondary hover:bg-secondary/20 hover:text-text-primary'
                     }`}
                   >
-                    <span className="text-lg mb-1 leading-none">
+                    <span className="text-sm leading-none">
                       {pm.id === 'cash' && '💵'}
                       {pm.id === 'bank' && '🏦'}
                       {pm.id === 'credit_card' && '💳'}
                       {pm.id === 'e_wallet' && '📱'}
                       {pm.id === 'savings' && '🐷'}
                     </span>
-                    <span className="truncate w-full text-center text-[9px] tracking-tight">{t(`payment.${pm.id}`)}</span>
+                    <span>{t(`payment.${pm.id}`)}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Merchant Input */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
+          {/* Merchant Input (h-[46px]) */}
+          <div className="flex items-center gap-3 h-[46px] px-3 rounded-2xl flex-shrink-0" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
-              <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.merchant')}</label>
+              <label className="text-[11px] font-semibold text-text-secondary block leading-none mb-0.5">{t('transaction.merchant')}</label>
               <input
                 id="transaction-merchant"
                 type="text"
@@ -316,11 +316,11 @@ export default function AddTransactionDialog({
             </div>
           </div>
 
-          {/* Notes Input */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl mb-8" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
+          {/* Notes Input (h-[46px]) */}
+          <div className="flex items-center gap-3 h-[46px] px-3 rounded-2xl flex-shrink-0 mb-1" style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
             <AlignLeft size={18} className="text-accent-purple" />
             <div className="flex-1">
-              <label className="text-[10px] text-text-secondary font-bold block">{t('transaction.note')}</label>
+              <label className="text-[11px] font-semibold text-text-secondary block leading-none mb-0.5">{t('transaction.note')}</label>
               <input
                 id="transaction-note"
                 type="text"
@@ -335,7 +335,7 @@ export default function AddTransactionDialog({
         </div>
 
         {/* Calculator Keypad */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 mt-2 border-t border-border/40">
           <CalculatorKeypad
             onValueChange={setAmount}
             onSave={handleSave}
