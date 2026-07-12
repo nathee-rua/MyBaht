@@ -13,7 +13,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - api/telegram (telegram webhook - needs to work without auth)
+     * - api/line (line webhook - needs to work without auth)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/telegram|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/telegram|api/line|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
