@@ -214,3 +214,27 @@ export interface InvestmentReminder {
   name?: string; // Add name support for custom reminder names
 }
 
+// Supabase investment schema interfaces
+export interface InvestmentDbAsset {
+  id: string;
+  user_id: string;
+  symbol: string;
+  name: string;
+  type: 'stocks' | 'crypto' | 'mutual_funds' | 'gold' | 'other';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvestmentDbRecord {
+  id: string;
+  user_id: string;
+  asset_id: string;
+  date: string; // ISO date string YYYY-MM-DD
+  type: 'buy' | 'sell' | 'dividend';
+  amount: number;
+  price?: number | null;
+  units?: number | null;
+  created_at: string;
+  updated_at: string;
+  asset?: InvestmentDbAsset; // joined details
+}

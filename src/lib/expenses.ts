@@ -1,5 +1,16 @@
 import { createClient } from '@/lib/supabase/client';
-import type { Transaction, TransactionFormData, SummaryData, CategoryBreakdownItem, ChartDataPoint, Category, TransactionClassification, AdvancedSummaryData } from '@/types';
+import type { 
+  Transaction, 
+  TransactionFormData, 
+  SummaryData, 
+  CategoryBreakdownItem, 
+  ChartDataPoint, 
+  Category, 
+  TransactionClassification, 
+  AdvancedSummaryData,
+  InvestmentDbAsset,
+  InvestmentDbRecord
+} from '@/types';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, CHART_COLORS } from '@/types';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, format, subDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } from 'date-fns';
 
@@ -301,3 +312,164 @@ export function calculateAdvancedSummary(
   return { monthly, cumulativeYear, cumulativeAll };
 }
 
+// ===== Investment DB Access Helpers =====
+
+export async function getInvestmentAssets(): Promise<InvestmentDbAsset[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('investment_assets')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('symbol', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createInvestmentAsset(asset: {
+  symbol: string;
+  name: string;
+  type: InvestmentDbAsset['type'];
+}): Promise<InvestmentDbAsset> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('investment_assets')
+    .insert({
+      user_id: user.id,
+      symbol: asset.symbol,
+      name: asset.name,
+      type: asset.type,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateInvestmentAsset(
+  id: string,
+  asset: Partial<{ symbol: string; name: string; type: InvestmentDbAsset['type'] }>
+): Promise<InvestmentDbAsset> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('investment_assets')
+    .update({
+      ...asset,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteInvestmentAsset(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('investment_assets')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+export async function getInvestmentRecords(filters?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<InvestmentDbRecord[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  let query = supabase
+    .from('investment_records')
+    .select('*, asset:investment_assets(*)')
+    .eq('user_id', user.id);
+
+  if (filters?.startDate) {
+    query = query.gte('date', filters.startDate);
+  }
+  if (filters?.endDate) {
+    query = query.lte('date', filters.endDate);
+  }
+
+  const { data, error } = await query.order('date', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createInvestmentRecord(record: {
+  asset_id: string;
+  date: string;
+  type: InvestmentDbRecord['type'];
+  amount: number;
+  price?: number | null;
+  units?: number | null;
+}): Promise<InvestmentDbRecord> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('investment_records')
+    .insert({
+      user_id: user.id,
+      asset_id: record.asset_id,
+      date: record.date,
+      type: record.type,
+      amount: record.amount,
+      price: record.price || null,
+      units: record.units || null,
+    })
+    .select('*, asset:investment_assets(*)')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateInvestmentRecord(
+  id: string,
+  record: Partial<{
+    asset_id: string;
+    date: string;
+    type: InvestmentDbRecord['type'];
+    amount: number;
+    price?: number | null;
+    units?: number | null;
+  }>
+): Promise<InvestmentDbRecord> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('investment_records')
+    .update({
+      ...record,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select('*, asset:investment_assets(*)')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteInvestmentRecord(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('investment_records')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}

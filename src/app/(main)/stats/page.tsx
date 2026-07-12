@@ -2,8 +2,20 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { getTransactions, calculateCategoryBreakdown, calculateAdvancedSummary } from '@/lib/expenses';
-import type { Transaction, InvestmentReminder, InvestmentRecord } from '@/types';
+import { 
+  getTransactions, 
+  calculateCategoryBreakdown, 
+  calculateAdvancedSummary,
+  getInvestmentAssets,
+  createInvestmentAsset,
+  updateInvestmentAsset,
+  deleteInvestmentAsset,
+  getInvestmentRecords,
+  createInvestmentRecord,
+  updateInvestmentRecord,
+  deleteInvestmentRecord
+} from '@/lib/expenses';
+import type { Transaction, InvestmentReminder, InvestmentRecord, InvestmentDbAsset, InvestmentDbRecord } from '@/types';
 import { EXPENSE_CATEGORIES } from '@/types';
 import DonutChart from '@/components/stats/DonutChart';
 import CategoryBreakdown from '@/components/stats/CategoryBreakdown';
@@ -19,12 +31,42 @@ import { startOfMonth, endOfMonth, format, subMonths, addMonths, eachDayOfInterv
 
 export default function StatsPage() {
   const { language, t, formatCurrency } = useI18n();
-  const [activeTab, setActiveTab] = useState<'stats' | 'budget' | 'note'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'budget' | 'note' | 'investment'>('stats');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // --- Investment DB State ---
+  const [dbAssets, setDbAssets] = useState<InvestmentDbAsset[]>([]);
+  const [dbRecords, setDbRecords] = useState<InvestmentDbRecord[]>([]);
+  const [dbLoading, setDbLoading] = useState(false);
+  const [showAddAssetForm, setShowAddAssetForm] = useState(false);
+  
+  // Add Asset Form State
+  const [newAssetSymbol, setNewAssetSymbol] = useState('');
+  const [newAssetName, setNewAssetName] = useState('');
+  const [newAssetType, setNewAssetType] = useState<InvestmentDbAsset['type']>('stocks');
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
+
+  const [editingAssetSymbol, setEditingAssetSymbol] = useState('');
+  const [editingAssetName, setEditingAssetName] = useState('');
+  const [editingAssetType, setEditingAssetType] = useState<InvestmentDbAsset['type']>('stocks');
+
+  // Add Record Form State
+  const [showAddDbRecordForm, setShowAddDbRecordForm] = useState(false);
+  const [recordAssetSearch, setRecordAssetSearch] = useState('');
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [recordDate, setRecordDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
+  const [recordType, setRecordType] = useState<'buy' | 'sell' | 'dividend'>('buy');
+  const [recordAmount, setRecordAmount] = useState('');
+  const [recordPrice, setRecordPrice] = useState('');
+  const [recordUnits, setRecordUnits] = useState('');
+
+  // Asset creation inline form (when no asset is matched in combobox)
+  const [inlineAssetName, setInlineAssetName] = useState('');
+  const [inlineAssetType, setInlineAssetType] = useState<InvestmentDbAsset['type']>('stocks');
 
   // --- Budget State ---
   const [livingBudget, setLivingBudget] = useState(() => {
@@ -191,6 +233,41 @@ export default function StatsPage() {
     return () => clearTimeout(timer);
   }, [fetchTransactions]);
 
+  // Fetch Investment Assets & Records safely
+  const fetchInvestmentData = useCallback(async () => {
+    if (activeTab !== 'investment') return;
+    setDbLoading(true);
+    try {
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
+      const [assetsData, recordsData] = await Promise.all([
+        getInvestmentAssets(),
+        getInvestmentRecords({
+          startDate: format(start, 'yyyy-MM-dd'),
+          endDate: format(end, 'yyyy-MM-dd'),
+        })
+      ]);
+      setDbAssets(assetsData);
+      setDbRecords(recordsData);
+    } catch (err) {
+      console.error('Failed to fetch investment data:', err);
+    } finally {
+      setDbLoading(false);
+    }
+  }, [activeTab, currentDate]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (activeTab === 'investment') {
+      fetchInvestmentData().then(() => {
+        if (!isMounted) return;
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, fetchInvestmentData]);
+
   const handlePrevMonth = () => {
     setCurrentDate(subMonths(currentDate, 1));
     setSelectedDay(null);
@@ -276,6 +353,36 @@ export default function StatsPage() {
     return result;
   }, [transactions]);
 
+  // Investment DB calculated metrics
+  const investmentSummary = useMemo(() => {
+    let totalBuy = 0;
+    let totalSell = 0;
+    let totalDividend = 0;
+    
+    for (const rec of dbRecords) {
+      const amt = Number(rec.amount);
+      if (rec.type === 'buy') totalBuy += amt;
+      else if (rec.type === 'sell') totalSell += amt;
+      else if (rec.type === 'dividend') totalDividend += amt;
+    }
+    
+    return { totalBuy, totalSell, totalDividend };
+  }, [dbRecords]);
+
+  // Combobox matching search helper
+  const filteredAssetsForSearch = useMemo(() => {
+    if (!recordAssetSearch) return [];
+    return dbAssets.filter(
+      (a) =>
+        a.symbol.toLowerCase().includes(recordAssetSearch.toLowerCase()) ||
+        a.name.toLowerCase().includes(recordAssetSearch.toLowerCase())
+    );
+  }, [dbAssets, recordAssetSearch]);
+
+  const exactAssetMatch = useMemo(() => {
+    return dbAssets.find((a) => a.symbol.toLowerCase() === recordAssetSearch.trim().toLowerCase());
+  }, [dbAssets, recordAssetSearch]);
+
   // Add/delete reminder functions
   const handleAddReminder = () => {
     if (!newReminderName || !newReminderAmount) return;
@@ -334,6 +441,100 @@ export default function StatsPage() {
     localStorage.setItem('mb_records', JSON.stringify(updated));
   };
 
+  // Investment DB Asset handlers
+  const handleStartEditAsset = (asset: InvestmentDbAsset) => {
+    setEditingAssetId(asset.id);
+    setEditingAssetSymbol(asset.symbol);
+    setEditingAssetName(asset.name);
+    setEditingAssetType(asset.type);
+  };
+
+  const handleSaveAssetEdit = async (id: string) => {
+    try {
+      await updateInvestmentAsset(id, {
+        symbol: editingAssetSymbol.toUpperCase(),
+        name: editingAssetName,
+        type: editingAssetType,
+      });
+      setEditingAssetId(null);
+      fetchInvestmentData();
+    } catch (err) {
+      console.error('Failed to update asset:', err);
+    }
+  };
+
+  const handleDeleteAsset = async (id: string) => {
+    if (!confirm(language === 'th' ? 'คุณแน่ใจหรือไม่ว่าต้องการลบสินทรัพย์นี้? การลบนี้จะลบประวัติการทำรายการที่เกี่ยวข้องทั้งหมดด้วย' : 'Are you sure you want to delete this asset? This will also delete all associated transaction records.')) return;
+    try {
+      await deleteInvestmentAsset(id);
+      fetchInvestmentData();
+    } catch (err) {
+      console.error('Failed to delete asset:', err);
+    }
+  };
+
+  // Investment DB Record handlers
+  const handleSaveInvestmentRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recordAssetSearch.trim()) return;
+    if (!recordAmount) return;
+
+    try {
+      let assetId = selectedAssetId;
+
+      // Create new asset inline if needed
+      if (!assetId) {
+        if (exactAssetMatch) {
+          assetId = exactAssetMatch.id;
+        } else {
+          const newAsset = await createInvestmentAsset({
+            symbol: recordAssetSearch.trim().toUpperCase(),
+            name: inlineAssetName.trim() || recordAssetSearch.trim().toUpperCase(),
+            type: inlineAssetType,
+          });
+          assetId = newAsset.id;
+          const assetsData = await getInvestmentAssets();
+          setDbAssets(assetsData);
+        }
+      }
+
+      if (!assetId) return;
+
+      await createInvestmentRecord({
+        asset_id: assetId,
+        date: recordDate,
+        type: recordType,
+        amount: Number(recordAmount),
+        price: recordPrice ? Number(recordPrice) : null,
+        units: recordUnits ? Number(recordUnits) : null,
+      });
+
+      // Reset form fields
+      setRecordAssetSearch('');
+      setSelectedAssetId(null);
+      setRecordAmount('');
+      setRecordPrice('');
+      setRecordUnits('');
+      setInlineAssetName('');
+      setShowAddDbRecordForm(false);
+      
+      // Refresh DB data
+      fetchInvestmentData();
+    } catch (err) {
+      console.error('Error saving investment record:', err);
+    }
+  };
+
+  const handleDeleteInvestmentRecord = async (id: string) => {
+    if (!confirm(language === 'th' ? 'คุณแน่ใจหรือไม่ว่าต้องการลบรายการบันทึกการลงทุนนี้?' : 'Are you sure you want to delete this investment record?')) return;
+    try {
+      await deleteInvestmentRecord(id);
+      fetchInvestmentData();
+    } catch (err) {
+      console.error('Failed to delete record:', err);
+    }
+  };
+
   // Handle Note edits
   const handleSaveNote = (type: 'selected' | 'monthly' | 'investment') => {
     if (type === 'selected' && selectedDay) {
@@ -375,7 +576,7 @@ export default function StatsPage() {
       {/* Header Tabs (Pill Style) */}
       <div className="flex justify-center w-full px-1 mb-1 mt-2">
         <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 h-11 w-full shadow-sm">
-          {(['stats', 'budget', 'note'] as const).map((tab) => {
+          {(['stats', 'budget', 'note', 'investment'] as const).map((tab) => {
             const isActive = activeTab === tab;
             return (
               <button
@@ -424,54 +625,58 @@ export default function StatsPage() {
         </div>
 
         {/* Day initials */}
-        <div className="grid grid-cols-7 gap-y-1 text-center text-[10px] font-extrabold tracking-wider opacity-60 text-text-secondary">
-          {dayNames.map((name, i) => (
-            <div key={i} className="py-0.5">
-              {name}
-            </div>
-          ))}
-        </div>
+        {activeTab !== 'investment' && (
+          <div className="grid grid-cols-7 gap-y-1 text-center text-[10px] font-extrabold tracking-wider opacity-60 text-text-secondary">
+            {dayNames.map((name, i) => (
+              <div key={i} className="py-0.5">
+                {name}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Days grid */}
-        <div className="grid grid-cols-7 gap-y-2 text-center mt-1">
-          {Array.from({ length: startDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="aspect-square" />
-          ))}
+        {activeTab !== 'investment' && (
+          <div className="grid grid-cols-7 gap-y-2 text-center mt-1">
+            {Array.from({ length: startDayOfWeek }).map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-square" />
+            ))}
 
-          {daysInMonth.map((day) => {
-            const isSelected = selectedDay ? isSameDay(day, selectedDay) : false;
-            const isToday = isSameDay(day, new Date());
-            const dateStr = format(day, 'yyyy-MM-dd');
-            const hasTx = transactions.some((tx) => tx.date === dateStr);
+            {daysInMonth.map((day) => {
+              const isSelected = selectedDay ? isSameDay(day, selectedDay) : false;
+              const isToday = isSameDay(day, new Date());
+              const dateStr = format(day, 'yyyy-MM-dd');
+              const hasTx = transactions.some((tx) => tx.date === dateStr);
 
-            return (
-              <button
-                key={day.toString()}
-                onClick={() => {
-                  if (selectedDay && isSameDay(day, selectedDay)) {
-                    setSelectedDay(null);
-                  } else {
-                    setSelectedDay(day);
-                  }
-                }}
-                className={`relative w-8 h-8 mx-auto flex items-center justify-center rounded-xl transition-all duration-200 text-xs font-semibold cursor-pointer active:scale-95 ${
-                  isSelected 
-                    ? 'bg-accent-purple text-white shadow-[0_4px_12px_rgba(124,58,237,0.3)] font-bold' 
-                    : isToday
-                      ? 'border-2 border-accent-purple text-accent-purple font-bold bg-accent-purple/5'
-                      : 'text-text-primary hover:bg-secondary/40'
-                }`}
-              >
-                <span>{format(day, 'd')}</span>
-                {hasTx && (
-                  <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
-                    isSelected ? 'bg-white' : 'bg-accent-purple animate-pulse'
-                  }`} />
-                )}
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={day.toString()}
+                  onClick={() => {
+                    if (selectedDay && isSameDay(day, selectedDay)) {
+                      setSelectedDay(null);
+                    } else {
+                      setSelectedDay(day);
+                    }
+                  }}
+                  className={`relative w-8 h-8 mx-auto flex items-center justify-center rounded-xl transition-all duration-200 text-xs font-semibold cursor-pointer active:scale-95 ${
+                    isSelected 
+                      ? 'bg-accent-purple text-white shadow-[0_4px_12px_rgba(124,58,237,0.3)] font-bold' 
+                      : isToday
+                        ? 'border-2 border-accent-purple text-accent-purple font-bold bg-accent-purple/5'
+                        : 'text-text-primary hover:bg-secondary/40'
+                  }`}
+                >
+                  <span>{format(day, 'd')}</span>
+                  {hasTx && (
+                    <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
+                      isSelected ? 'bg-white' : 'bg-accent-purple animate-pulse'
+                    }`} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -679,7 +884,7 @@ export default function StatsPage() {
                     type="number"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="w-full bg-bg-primary border border-border/40 rounded-lg px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-accent-purple"
+                    className="w-full bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent-purple"
                     autoFocus
                   />
                   <button 
@@ -816,7 +1021,7 @@ export default function StatsPage() {
             </div>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'note' ? (
         /* Record/Note Tab */
         <div className="flex flex-col gap-5 animate-scale-in">
           {/* Notes for selected date */}
@@ -1178,6 +1383,439 @@ export default function StatsPage() {
             )}
           </div>
         </div>
+      ) : (
+        /* Investment Tab UI */
+        <div className="flex flex-col gap-6 animate-scale-in">
+          {/* Investment Summary Cards */}
+          <div className="grid grid-cols-3 gap-3 w-full">
+            {/* Total Buy Card */}
+            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                {language === 'th' ? 'ซื้อ (DCA)' : 'Buy (DCA)'}
+              </span>
+              <div className="flex-1 flex items-center">
+                <span className="text-lg font-black text-text-primary tracking-tight">
+                  {formatCurrency(investmentSummary.totalBuy)}
+                </span>
+              </div>
+            </div>
+
+            {/* Total Sell Card */}
+            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                {language === 'th' ? 'ขาย' : 'Sell'}
+              </span>
+              <div className="flex-1 flex items-center">
+                <span className="text-lg font-black text-accent-purple tracking-tight">
+                  {formatCurrency(investmentSummary.totalSell)}
+                </span>
+              </div>
+            </div>
+
+            {/* Total Dividend Card */}
+            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                {language === 'th' ? 'ปันผล' : 'Dividend'}
+              </span>
+              <div className="flex-1 flex items-center">
+                <span className="text-lg font-black text-income-green tracking-tight">
+                  {formatCurrency(investmentSummary.totalDividend)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Add Record Section */}
+          <div className="p-4 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col gap-3 shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+            <div className="flex justify-between items-center pb-2 border-b border-border/10">
+              <h3 className="text-xs font-extrabold text-text-primary flex items-center gap-1.5">
+                <Plus size={14} className="text-accent-purple" />
+                <span>{language === 'th' ? 'บันทึกธุรกรรมการลงทุน' : 'Log Investment Transaction'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowAddDbRecordForm(!showAddDbRecordForm)}
+                className="px-2.5 py-1 bg-accent-purple/10 text-accent-purple hover:bg-accent-purple/20 transition rounded-lg text-[10px] font-bold cursor-pointer"
+              >
+                {showAddDbRecordForm ? (language === 'th' ? 'ซ่อนฟอร์ม' : 'Hide Form') : (language === 'th' ? 'เปิดฟอร์ม' : 'Show Form')}
+              </button>
+            </div>
+
+            {showAddDbRecordForm && (
+              <form onSubmit={handleSaveInvestmentRecord} className="flex flex-col gap-3 animate-scale-in">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Asset Combobox Matcher */}
+                  <div className="flex flex-col gap-1 relative">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'สัญลักษณ์สินทรัพย์' : 'Asset Symbol'}</label>
+                    <input
+                      type="text"
+                      placeholder={language === 'th' ? 'เช่น BTC, SCB, AAPL' : 'e.g. BTC, SCB, AAPL'}
+                      value={recordAssetSearch}
+                      onChange={(e) => {
+                        setRecordAssetSearch(e.target.value);
+                        setSelectedAssetId(null); // clear selected if typing
+                      }}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                      required
+                    />
+                    
+                    {/* Combobox suggestions */}
+                    {recordAssetSearch && !selectedAssetId && filteredAssetsForSearch.length > 0 && (
+                      <div className="absolute z-10 top-full left-0 w-full mt-1 bg-bg-secondary border border-border/40 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                        {filteredAssetsForSearch.map((asset) => (
+                          <button
+                            key={asset.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedAssetId(asset.id);
+                              setRecordAssetSearch(asset.symbol);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-secondary/40 text-text-primary flex justify-between border-b border-border/5 cursor-pointer"
+                          >
+                            <span className="font-bold">{asset.symbol}</span>
+                            <span className="text-text-muted">{asset.name} ({asset.type})</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Date Input */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'วันที่' : 'Date'}</label>
+                    <input
+                      type="date"
+                      value={recordDate}
+                      onChange={(e) => setRecordDate(e.target.value)}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Inline new asset registration inputs */}
+                {recordAssetSearch && !selectedAssetId && !exactAssetMatch && (
+                  <div className="p-3 bg-accent-purple/5 border border-accent-purple/20 rounded-xl flex flex-col gap-2 animate-scale-in">
+                    <div className="text-[10px] font-extrabold text-accent-purple">
+                      ✨ {language === 'th' ? 'ลงทะเบียนสินทรัพย์ใหม่' : 'REGISTER NEW ASSET'} "{recordAssetSearch.toUpperCase()}"
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="text"
+                          placeholder={language === 'th' ? 'ชื่อเต็มสินทรัพย์ (เช่น Bitcoin)' : 'Full Name (e.g. Bitcoin)'}
+                          value={inlineAssetName}
+                          onChange={(e) => setInlineAssetName(e.target.value)}
+                          className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <select
+                          value={inlineAssetType}
+                          onChange={(e) => setInlineAssetType(e.target.value as InvestmentDbAsset['type'])}
+                          className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                        >
+                          <option value="stocks">{language === 'th' ? 'หุ้น' : 'Stocks'}</option>
+                          <option value="crypto">{language === 'th' ? 'คริปโต' : 'Crypto'}</option>
+                          <option value="mutual_funds">{language === 'th' ? 'กองทุนรวม' : 'Mutual Funds'}</option>
+                          <option value="gold">{language === 'th' ? 'ทองคำ' : 'Gold'}</option>
+                          <option value="other">{language === 'th' ? 'อื่นๆ' : 'Other'}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-4 gap-2">
+                  {/* Type Select */}
+                  <div className="col-span-2 flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'ประเภทธุรกรรม' : 'Transaction Type'}</label>
+                    <select
+                      value={recordType}
+                      onChange={(e) => setRecordType(e.target.value as 'buy' | 'sell' | 'dividend')}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                    >
+                      <option value="buy">{language === 'th' ? 'ซื้อ (DCA)' : 'Buy (DCA)'}</option>
+                      <option value="sell">{language === 'th' ? 'ขาย' : 'Sell'}</option>
+                      <option value="dividend">{language === 'th' ? 'ปันผล' : 'Dividend'}</option>
+                    </select>
+                  </div>
+
+                  {/* Amount Input */}
+                  <div className="col-span-2 flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'จำนวนเงิน (บาท)' : 'Amount (THB)'}</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={recordAmount}
+                      onChange={(e) => setRecordAmount(e.target.value)}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Price per unit (optional) */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'ราคาต่อหน่วย (ถ้ามี)' : 'Price per Unit (Optional)'}</label>
+                    <input
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.0000"
+                      value={recordPrice}
+                      onChange={(e) => setRecordPrice(e.target.value)}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Units (optional) */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'จำนวนหน่วย (ถ้ามี)' : 'Units (Optional)'}</label>
+                    <input
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.0000"
+                      value={recordUnits}
+                      onChange={(e) => setRecordUnits(e.target.value)}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-1">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-accent-purple text-white hover:bg-accent-purple-light transition rounded-lg text-xs font-bold cursor-pointer"
+                  >
+                    {language === 'th' ? 'บันทึกรายการ' : 'Confirm Record'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Investment Records (This Month) */}
+          <div className="p-4 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col gap-3 shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+            <h3 className="text-xs font-extrabold text-text-primary flex items-center gap-1.5 pb-2 border-b border-border/10">
+              <TrendingUp size={14} className="text-accent-purple" />
+              <span>{language === 'th' ? 'รายการลงทุนเดือนนี้' : 'Investment Records (This Month)'}</span>
+            </h3>
+
+            {dbLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <RefreshCw size={16} className="animate-spin text-accent-purple" />
+              </div>
+            ) : dbRecords.length > 0 ? (
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+                {dbRecords.map((rec) => (
+                  <div key={rec.id} className="flex justify-between items-center p-2.5 bg-bg-primary/50 border border-border/10 rounded-xl">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                        <span>{rec.asset?.symbol}</span>
+                        <span className="text-[10px] font-normal text-text-muted">({rec.asset?.name})</span>
+                      </span>
+                      <span className="text-[9px] text-text-muted uppercase tracking-wider flex gap-1.5 mt-0.5">
+                        <span>{rec.date}</span>
+                        <span>•</span>
+                        <span className={`font-semibold ${
+                          rec.type === 'buy' ? 'text-text-primary' :
+                          rec.type === 'sell' ? 'text-accent-purple' :
+                          'text-income-green'
+                        }`}>{rec.type.toUpperCase()}</span>
+                      </span>
+                      {(rec.price || rec.units) && (
+                        <span className="text-[9px] text-text-muted mt-0.5">
+                          {rec.units && `${rec.units} units`} {rec.price && `@ ฿${rec.price}`}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <span className={`text-xs font-extrabold ${
+                        rec.type === 'dividend' ? 'text-income-green' :
+                        rec.type === 'sell' ? 'text-accent-purple' :
+                        'text-text-primary'
+                      }`}>
+                        {rec.type === 'dividend' ? '+' : rec.type === 'sell' ? '+' : '-'}{formatCurrency(rec.amount)}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteInvestmentRecord(rec.id)}
+                        className="p-1 hover:bg-red-500/10 text-text-muted hover:text-red-500 rounded-lg transition cursor-pointer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-text-muted italic py-1 text-center">{language === 'th' ? 'ไม่มีรายการบันทึกในเดือนนี้' : 'No investment records this month.'}</p>
+            )}
+          </div>
+
+          {/* Registered Assets Section */}
+          <div className="p-4 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col gap-3 shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+            <div className="flex justify-between items-center pb-2 border-b border-border/10">
+              <h3 className="text-xs font-extrabold text-text-primary flex items-center gap-1.5">
+                <TrendingUp size={14} className="text-accent-purple" />
+                <span>{language === 'th' ? 'สินทรัพย์ที่ลงทะเบียนไว้' : 'Registered Assets'}</span>
+              </h3>
+              <button
+                onClick={() => setShowAddAssetForm(!showAddAssetForm)}
+                className="p-1 hover:bg-secondary/40 rounded-lg text-accent-purple transition flex items-center gap-0.5 text-[10px] font-bold cursor-pointer"
+              >
+                <Plus size={12} /> {language === 'th' ? 'ลงทะเบียนเพิ่ม' : 'Register Asset'}
+              </button>
+            </div>
+
+            {showAddAssetForm && (
+              <div className="p-3 bg-secondary/10 border border-border/10 rounded-xl flex flex-col gap-2.5 animate-scale-in">
+                <span className="text-[10px] font-bold text-text-secondary">{language === 'th' ? 'ลงทะเบียนสินทรัพย์ใหม่' : 'REGISTER NEW INVESTMENT ASSET'}</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <input
+                    type="text"
+                    placeholder={language === 'th' ? 'สัญลักษณ์ (เช่น AAPL)' : 'Symbol (e.g. AAPL)'}
+                    value={newAssetSymbol}
+                    onChange={(e) => setNewAssetSymbol(e.target.value)}
+                    className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder={language === 'th' ? 'ชื่อเต็ม (เช่น Apple Inc)' : 'Full Name (e.g. Apple Inc)'}
+                    value={newAssetName}
+                    onChange={(e) => setNewAssetName(e.target.value)}
+                    className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                  />
+                  <select
+                    value={newAssetType}
+                    onChange={(e) => setNewAssetType(e.target.value as InvestmentDbAsset['type'])}
+                    className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                  >
+                    <option value="stocks">{language === 'th' ? 'หุ้น' : 'Stocks'}</option>
+                    <option value="crypto">{language === 'th' ? 'คริปโต' : 'Crypto'}</option>
+                    <option value="mutual_funds">{language === 'th' ? 'กองทุนรวม' : 'Mutual Funds'}</option>
+                    <option value="gold">{language === 'th' ? 'ทองคำ' : 'Gold'}</option>
+                    <option value="other">{language === 'th' ? 'อื่นๆ' : 'Other'}</option>
+                  </select>
+                </div>
+                <div className="flex justify-end gap-1.5">
+                  <button
+                    onClick={async () => {
+                      if (!newAssetSymbol || !newAssetName) return;
+                      try {
+                        await createInvestmentAsset({
+                          symbol: newAssetSymbol.trim().toUpperCase(),
+                          name: newAssetName.trim(),
+                          type: newAssetType,
+                        });
+                        setNewAssetSymbol('');
+                        setNewAssetName('');
+                        setShowAddAssetForm(false);
+                        fetchInvestmentData();
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="px-3 py-1 bg-accent-purple text-white rounded-lg text-[10px] font-bold cursor-pointer"
+                  >
+                    {language === 'th' ? 'ยืนยัน' : 'Confirm'}
+                  </button>
+                  <button
+                    onClick={() => setShowAddAssetForm(false)}
+                    className="px-3 py-1 bg-secondary/40 text-text-secondary rounded-lg text-[10px] cursor-pointer"
+                  >
+                    {language === 'th' ? 'ยกเลิก' : 'Cancel'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {dbAssets.length > 0 ? (
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+                {dbAssets.map((asset) => {
+                  const isEditing = editingAssetId === asset.id;
+                  return (
+                    <div key={asset.id} className="p-2.5 bg-bg-primary/50 border border-border/10 rounded-xl flex flex-col gap-2">
+                      {isEditing ? (
+                        <div className="flex flex-col gap-2 animate-fade-in">
+                          <div className="grid grid-cols-3 gap-2">
+                            <input
+                              type="text"
+                              value={editingAssetSymbol}
+                              onChange={(e) => setEditingAssetSymbol(e.target.value)}
+                              className="bg-bg-primary border border-border/40 rounded px-1.5 py-1 text-xs"
+                            />
+                            <input
+                              type="text"
+                              value={editingAssetName}
+                              onChange={(e) => setEditingAssetName(e.target.value)}
+                              className="bg-bg-primary border border-border/40 rounded px-1.5 py-1 text-xs"
+                            />
+                            <select
+                              value={editingAssetType}
+                              onChange={(e) => setEditingAssetType(e.target.value as InvestmentDbAsset['type'])}
+                              className="bg-bg-primary border border-border/40 rounded px-1.5 py-1 text-xs text-text-primary focus:outline-none"
+                            >
+                              <option value="stocks">Stocks</option>
+                              <option value="crypto">Crypto</option>
+                              <option value="mutual_funds">Mutual Funds</option>
+                              <option value="gold">Gold</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </div>
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              onClick={() => handleSaveAssetEdit(asset.id)}
+                              className="px-2 py-0.5 bg-accent-purple text-white text-[10px] rounded cursor-pointer font-bold"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingAssetId(null)}
+                              className="px-2 py-0.5 bg-secondary/60 text-text-secondary text-[10px] rounded cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                              <span>{asset.symbol}</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-purple/10 text-accent-purple border border-accent-purple/20 capitalize">
+                                {asset.type === 'mutual_funds' ? 'Mutual Fund' : asset.type}
+                              </span>
+                            </span>
+                            <span className="text-[10px] text-text-muted mt-0.5">{asset.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleStartEditAsset(asset)}
+                              className="p-1 hover:bg-secondary/40 text-text-muted hover:text-text-primary rounded-lg transition cursor-pointer"
+                            >
+                              <Edit3 size={12} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAsset(asset.id)}
+                              className="p-1 hover:bg-red-500/10 text-text-muted hover:text-red-500 rounded-lg transition cursor-pointer"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-text-muted italic py-1 text-center">{language === 'th' ? 'ไม่มีสินทรัพย์ที่ลงทะเบียนไว้' : 'No registered assets.'}</p>
+            )}
+          </div>
+        </div>
       )}
       {/* Add Dialog */}
       <AddTransactionDialog
@@ -1188,4 +1826,3 @@ export default function StatsPage() {
     </div>
   );
 }
-

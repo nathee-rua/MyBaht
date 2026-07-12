@@ -80,6 +80,7 @@ const translations: Record<string, Record<Language, string>> = {
   'stats.title': { th: 'สถิติ', en: 'Stats' },
   'stats.budget': { th: 'งบประมาณ', en: 'Budget' },
   'stats.note': { th: 'บันทึก', en: 'Note' },
+  'stats.investment': { th: 'การลงทุน', en: 'Investment' },
   'stats.spending': { th: 'ค่าใช้จ่ายเดือนนี้', en: 'Spend this month' },
   'stats.ascending': { th: 'น้อยไปมาก', en: 'Ascending' },
   'stats.descending': { th: 'มากไปน้อย', en: 'Descending' },
