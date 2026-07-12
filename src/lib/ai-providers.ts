@@ -74,7 +74,11 @@ export function keyIssue(provider: AIProvider, key: string): string | null {
   if (!key || key.trim().length === 0) {
     return 'API key is required';
   }
-  if (!key.startsWith(config.keyPrefix)) {
+  if (provider === 'google') {
+    if (!key.startsWith('AI') && !key.startsWith('AQ.')) {
+      return 'Key should start with "AI" or "AQ." for Gemini';
+    }
+  } else if (!key.startsWith(config.keyPrefix)) {
     return `Key should start with "${config.keyPrefix}" for ${config.name}`;
   }
   if (key.length < 10) {
