@@ -76,10 +76,15 @@ export function formatTransactionForTelegram(tx: {
   merchant?: string;
   note?: string;
   date: string;
+  payment_method?: string;
 }): string {
   let message = `<b>📝 รายการที่ตรวจพบ (Detected Transaction)</b>\n\n`;
   message += `💰 <b>ยอดเงิน (Amount):</b> ฿${tx.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}\n`;
   message += `🏷️ <b>หมวดหมู่ (Category):</b> ${tx.category}\n`;
+  if (tx.payment_method) {
+    const pmEmoji = tx.payment_method === 'credit_card' ? '💳' : tx.payment_method === 'bank' ? '🏦' : tx.payment_method === 'e_wallet' ? '📱' : '💵';
+    message += `${pmEmoji} <b>ช่องทางชำระเงิน (Method):</b> ${tx.payment_method}\n`;
+  }
   if (tx.merchant) message += `🏢 <b>ร้านค้า (Merchant):</b> ${tx.merchant}\n`;
   if (tx.note) message += `📝 <b>โน้ต (Note):</b> ${tx.note}\n`;
   message += `📅 <b>วันที่ (Date):</b> ${tx.date}\n`;

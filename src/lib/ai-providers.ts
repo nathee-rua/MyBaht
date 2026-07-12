@@ -188,7 +188,11 @@ Rules:
 - If currency is THB/Baht, use that amount directly
 - If the date is not clearly visible, use today's date
 - Category should match the type of purchase
-- For payment method, look for card numbers, QR codes, bank logos, etc.
+- Analyze or predict the payment method:
+  * Look for credit card brands (MasterCard, Visa, JCB, etc.) or terms like "บัตรเครดิต" or masked card numbers (e.g. xxxx-xxxx-5783) -> use "credit_card".
+  * Look for bank logos (K-Bank, SCB, Krungthai, Bangkok Bank), QR codes, mobile banking transaction details, or terms like "โอนเงิน", "เงินออก" -> use "bank".
+  * Look for wallet terms (TrueMoney, Rabbit Line Pay, ShopeePay) -> use "e_wallet".
+  * If no card, bank, or wallet identifiers are visible, default to "cash".
 - Return ONLY the JSON object, no markdown, no explanation`;
 
 export async function analyzeSlip(
@@ -245,6 +249,11 @@ Rules:
 - Try to infer the merchant/shop name from context (e.g. "Starbucks", "7-Eleven", "Grab", "Shopee", bank transfers).
 - In Thailand, bank alerts from K-Plus, SCB Easy, LINE alerts, or SMS alerts are common. Extract date/time from the alert context.
 - If the date is not found or is in relative terms, use today's date in YYYY-MM-DD.
+- Analyze or predict the payment method:
+  * If the text mentions "บัตรเครดิต", "Credit card", "บัตร", or has a card format like "4417-70xx-xxxx-5783" -> use "credit_card".
+  * If the text mentions "โอนเงิน", "เงินออก", "K-Plus", "SCB Easy", "Krungthai", "PromptPay", "โอนสำเร็จ" -> use "bank".
+  * If the text mentions "TrueMoney", "TMN", "Wallet", "Rabbit" -> use "e_wallet".
+  * Otherwise, predict based on context or use "cash".
 - Return ONLY the JSON object, no markdown code blocks, no explanation.`;
 
 export async function analyzeText(

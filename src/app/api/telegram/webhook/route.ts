@@ -7,7 +7,7 @@ import {
   downloadTelegramFileAsBase64,
   formatTransactionForTelegram,
 } from '@/lib/telegram';
-import { analyzeSlip } from '@/lib/ai-providers';
+import { analyzeSlip, analyzeText } from '@/lib/ai-providers';
 import { decrypt } from '@/lib/encryption';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -21,9 +21,26 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   },
 });
 
+const SHORT_PAYMENT_METHODS: Record<string, string> = {
+  ca: 'cash',
+  ba: 'bank',
+  cr: 'credit_card',
+  ew: 'e_wallet',
+  sa: 'savings'
+};
+
+const TO_SHORT_PAYMENT_METHOD: Record<string, string> = {
+  cash: 'ca',
+  bank: 'ba',
+  credit_card: 'cr',
+  e_wallet: 'ew',
+  savings: 'sa'
+};
+
 function createSafeCallbackData(
   amount: number,
   category: string,
+  paymentMethod: string,
   date: string,
   merchant?: string | null,
   note?: string | null
@@ -31,16 +48,17 @@ function createSafeCallbackData(
   const cleanMerchant = (merchant || 'none').replace(/:/g, ' '); // remove colons
   const cleanNote = (note || 'none').replace(/:/g, ' ');
   const dateStr = date.replace(/-/g, ''); // YYYYMMDD (8 chars)
+  const shortPm = TO_SHORT_PAYMENT_METHOD[paymentMethod] || 'ca';
 
   // Base callback data length without merchant and note:
-  // "save:amount:category:YYYYMMDD::"
-  const base = `save:${amount}:${category}:${dateStr}::`;
+  // "save:amount:category:shortPm:YYYYMMDD::"
+  const base = `save:${amount}:${category}:${shortPm}:${dateStr}::`;
   const baseBytes = Buffer.byteLength(base);
   const availableBytes = 64 - baseBytes;
 
   if (availableBytes <= 0) {
     // Fallback
-    return `save:${amount}:${category}:${dateStr}:none:none`;
+    return `save:${amount}:${category}:${shortPm}:${dateStr}:none:none`;
   }
 
   // Allocate half of the remaining bytes to merchant, and half to note
@@ -63,7 +81,7 @@ function createSafeCallbackData(
   const finalMerchant = truncateToBytes(cleanMerchant, merchantBytesMax);
   const finalNote = truncateToBytes(cleanNote, noteBytesMax);
 
-  return `save:${amount}:${category}:${dateStr}:${finalMerchant}:${finalNote}`;
+  return `save:${amount}:${category}:${shortPm}:${dateStr}:${finalMerchant}:${finalNote}`;
 }
 
 export async function POST(req: Request) {
@@ -84,14 +102,16 @@ export async function POST(req: Request) {
       const messageId = callbackQuery.message.message_id;
 
       if (data.startsWith('save:')) {
-        // format: save:amount:category:dateYYYYMMDD:merchant:note
+        // format: save:amount:category:shortPm:dateYYYYMMDD:merchant:note
         const parts = data.split(':');
         const amount = parseFloat(parts[1]);
         const category = parts[2];
-        const rawDate = parts[3]; // YYYYMMDD
+        const shortPm = parts[3];
+        const paymentMethod = SHORT_PAYMENT_METHODS[shortPm] || 'cash';
+        const rawDate = parts[4]; // YYYYMMDD
         const formattedDate = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
-        const merchant = parts[4] === 'none' ? null : parts[4];
-        const note = parts[5] === 'none' ? null : parts[5];
+        const merchant = parts[5] === 'none' ? null : parts[5];
+        const note = parts[6] === 'none' ? null : parts[6];
 
         // Find user by chatId
         const { data: settings, error: settingsError } = await supabaseAdmin
@@ -117,6 +137,7 @@ export async function POST(req: Request) {
           date: formattedDate,
           merchant,
           note,
+          payment_method: paymentMethod,
           source: 'telegram',
         });
 
@@ -235,12 +256,14 @@ export async function POST(req: Request) {
           merchant: parsed.merchant,
           note: parsed.note,
           date: parsed.date,
+          payment_method: parsed.payment_method,
         });
 
         // Inline keyboard for Save/Cancel actions
         const callbackData = createSafeCallbackData(
           parsed.amount,
           parsed.category,
+          parsed.payment_method || 'cash',
           parsed.date,
           parsed.merchant,
           parsed.note
@@ -258,8 +281,54 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    // Handle Text Alerts (SMS / LINE Alert copy-pasted)
+    if (text) {
+      // Send processing indicator
+      await sendTelegramMessage(chatId, '📥 ได้รับข้อความแจ้งเตือนแล้ว กำลังวิเคราะห์ข้อมูลด้วย AI...');
+
+      try {
+        const { ai_provider, ai_api_key_encrypted, ai_model } = settings;
+        if (!ai_provider || !ai_api_key_encrypted || !ai_model) {
+          await sendTelegramMessage(chatId, '❌ กรุณาตั้งค่าผู้ให้บริการ AI API Key และโมเดลในแอปก่อนเริ่มต้นใช้งาน');
+          return NextResponse.json({ ok: true });
+        }
+
+        const apiKey = decrypt(ai_api_key_encrypted);
+        const parsed = await analyzeText(ai_provider, apiKey, ai_model, text);
+
+        const formattedText = formatTransactionForTelegram({
+          amount: parsed.amount,
+          category: parsed.category,
+          merchant: parsed.merchant,
+          note: parsed.note,
+          date: parsed.date,
+          payment_method: parsed.payment_method,
+        });
+
+        // Inline keyboard for Save/Cancel actions
+        const callbackData = createSafeCallbackData(
+          parsed.amount,
+          parsed.category,
+          parsed.payment_method || 'cash',
+          parsed.date,
+          parsed.merchant,
+          parsed.note
+        );
+        await sendTelegramMessageWithKeyboard(chatId, formattedText, [
+          [
+            { text: '✅ บันทึกรายการ (Save)', callback_data: callbackData },
+            { text: '❌ ยกเลิก (Cancel)', callback_data: 'cancel' },
+          ],
+        ]);
+      } catch (err: unknown) {
+        console.error('Telegram text alert processing failed:', err);
+        await sendTelegramMessage(chatId, '❌ ไม่สามารถประมวลผลข้อความแจ้งเตือนนี้ได้ กรุณาตรวจสอบการตั้งค่า AI API หรือติดต่อแอดมิน');
+      }
+      return NextResponse.json({ ok: true });
+    }
+
     // Default response for other messages
-    await sendTelegramMessage(chatId, '💡 คุณสามารถส่งรูปภาพใบเสร็จเพื่อทำการบันทึกค่าใช้จ่ายอัตโนมัติได้ครับ');
+    await sendTelegramMessage(chatId, '💡 คุณสามารถส่งรูปภาพใบเสร็จหรือข้อความแจ้งเตือนโอนเงิน เพื่อทำการบันทึกค่าใช้จ่ายอัตโนมัติได้ครับ');
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
     console.error('Webhook error:', err);
