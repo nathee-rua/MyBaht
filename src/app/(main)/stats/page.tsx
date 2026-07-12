@@ -124,16 +124,16 @@ export default function StatsPage() {
   return (
     <div className="page-container px-4 pt-4 flex flex-col gap-5">
       {/* Header Tabs (Pill Style) */}
-      <div className="flex justify-center w-full px-2 mb-1 mt-2">
-        <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 w-full max-w-[420px] mx-auto shadow-inner">
+      <div className="flex justify-center w-full px-1 mb-1 mt-2">
+        <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 h-11 w-full shadow-sm">
           {(['stats', 'budget', 'note'] as const).map((tab) => {
             const isActive = activeTab === tab;
             return (
               <button
                 key={tab}
-                className={`flex-1 text-center py-2.5 text-xs font-black transition-all duration-300 cursor-pointer select-none rounded-full ${
+                className={`flex-1 text-center h-9 text-[12px] font-semibold transition-all duration-200 cursor-pointer select-none rounded-full ${
                   isActive
-                    ? 'bg-white dark:bg-bg-secondary text-accent-purple shadow-sm'
+                    ? 'bg-white dark:bg-bg-secondary text-accent-purple shadow-sm font-bold'
                     : 'text-text-secondary hover:text-text-primary'
                 }`}
                 onClick={() => setActiveTab(tab)}
@@ -146,25 +146,18 @@ export default function StatsPage() {
       </div>
 
       {/* Mini Calendar Date Selector */}
-      <div 
-        className="p-4 rounded-2xl border flex flex-col gap-3.5 transition-all shadow-sm animate-fade-in"
-        style={{ 
-          background: 'var(--color-bg-secondary)', 
-          borderColor: 'var(--color-border)' 
-        }}
-      >
+      <div className="p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary shadow-[0_6px_20px_rgba(17,24,39,0.04)] flex flex-col gap-3 transition-all duration-200">
         {/* Month Header */}
         <div className="flex items-center justify-between">
           <button 
             onClick={handlePrevMonth} 
-            className="p-1.5 hover:bg-secondary/40 rounded-xl text-text-secondary transition cursor-pointer"
-            style={{ color: 'var(--color-text-secondary)' }}
+            className="w-9 h-9 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center"
           >
             <ChevronLeft size={18} />
           </button>
           
-          <div className="flex items-center gap-2 font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>
-            <Calendar size={15} className="text-accent-purple" style={{ color: 'var(--color-accent-purple)' }} />
+          <div className="flex items-center gap-2 font-bold text-sm text-text-primary">
+            <Calendar size={15} className="text-accent-purple" />
             <span>{getMonthYearText()}</span>
             {selectedDay && (
               <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-accent-purple/10 text-accent-purple border border-accent-purple/20">
@@ -175,15 +168,14 @@ export default function StatsPage() {
           
           <button 
             onClick={handleNextMonth} 
-            className="p-1.5 hover:bg-secondary/40 rounded-xl text-text-secondary transition cursor-pointer"
-            style={{ color: 'var(--color-text-secondary)' }}
+            className="w-9 h-9 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center"
           >
             <ChevronRight size={18} />
           </button>
         </div>
 
         {/* Day initials */}
-        <div className="grid grid-cols-7 gap-y-1 text-center text-[10px] font-extrabold tracking-wider opacity-60" style={{ color: 'var(--color-text-secondary)' }}>
+        <div className="grid grid-cols-7 gap-y-1 text-center text-[10px] font-extrabold tracking-wider opacity-60 text-text-secondary">
           {dayNames.map((name, i) => (
             <div key={i} className="py-0.5">
               {name}
@@ -192,7 +184,7 @@ export default function StatsPage() {
         </div>
 
         {/* Days grid */}
-        <div className="grid grid-cols-7 gap-y-2 text-center mt-0.5">
+        <div className="grid grid-cols-7 gap-y-2 text-center mt-1">
           {Array.from({ length: startDayOfWeek }).map((_, i) => (
             <div key={`empty-${i}`} className="aspect-square" />
           ))}
@@ -213,32 +205,19 @@ export default function StatsPage() {
                     setSelectedDay(day);
                   }
                 }}
-                className={`relative aspect-square w-8 h-8 mx-auto flex flex-col items-center justify-center rounded-xl transition text-xs font-semibold cursor-pointer ${
-                  isSelected
-                    ? 'text-white shadow-sm'
+                className={`relative w-8 h-8 mx-auto flex items-center justify-center rounded-xl transition-all duration-200 text-xs font-semibold cursor-pointer active:scale-95 ${
+                  isSelected 
+                    ? 'bg-accent-purple text-white shadow-[0_4px_12px_rgba(124,58,237,0.3)] font-bold' 
                     : isToday
-                      ? 'border font-bold'
-                      : 'hover:bg-secondary/60'
+                      ? 'border-2 border-accent-purple text-accent-purple font-bold bg-accent-purple/5'
+                      : 'text-text-primary hover:bg-secondary/40'
                 }`}
-                style={{
-                  background: isSelected ? 'var(--color-accent-purple)' : 'transparent',
-                  borderColor: isToday ? 'var(--color-accent-purple)' : 'transparent',
-                  color: isSelected 
-                    ? '#FFFFFF' 
-                    : isToday 
-                      ? 'var(--color-accent-purple)' 
-                      : 'var(--color-text-primary)',
-                  boxShadow: isSelected ? '0 4px 12px rgba(124, 58, 237, 0.3)' : 'none',
-                }}
               >
                 <span>{format(day, 'd')}</span>
                 {hasTx && (
-                  <span
-                    className="absolute bottom-1 w-1 h-1 rounded-full animate-pulse"
-                    style={{
-                      background: isSelected ? '#FFFFFF' : 'var(--color-accent-purple)',
-                    }}
-                  />
+                  <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
+                    isSelected ? 'bg-white' : 'bg-accent-purple animate-pulse'
+                  }`} />
                 )}
               </button>
             );
@@ -256,71 +235,71 @@ export default function StatsPage() {
           {/* Side-by-Side Account Total Cards (Editorial Neutral style) */}
           <div className="grid grid-cols-2 gap-3.5 w-full">
             {/* Total Salary Card */}
-            <div 
-              className="relative overflow-hidden p-4 rounded-2xl border border-border/60 bg-bg-secondary flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-sm cursor-pointer"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                    {language === 'th' ? 'รายรับทั้งหมด' : 'Total Salary'}
-                  </span>
-                  <span className="text-[9px] text-text-muted font-medium tracking-wide">
-                    Bank Account ********1965
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-income-green bg-income-green/10 px-2 py-0.5 rounded-full text-[9px] font-bold">
-                  <ArrowUpRight size={12} />
+            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[116px] transition-transform duration-200 hover:scale-[1.02] shadow-[0_6px_20px_rgba(17,24,39,0.06)]">
+              {/* Title row */}
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[12px] font-bold text-text-primary">
+                  {language === 'th' ? 'รายรับทั้งหมด' : 'Total Salary'}
+                </span>
+                <div className="flex items-center gap-1 text-income-green bg-income-green/10 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  <ArrowUpRight size={10} />
                   <span>INCOME</span>
                 </div>
               </div>
-              
-              <div className="mt-auto">
-                <span className="text-[10px] text-text-muted block font-medium">Total Balance</span>
-                <span className="text-lg font-extrabold text-income-green tracking-tight">
+
+              {/* Meta row under title */}
+              <div className="text-[11px] font-medium text-text-muted opacity-65 mb-2 leading-none">
+                Bank Account ••••1965
+              </div>
+
+              {/* Center Amount Block */}
+              <div className="flex-1 flex flex-col justify-center">
+                <span className="text-[30px] font-bold text-income-green tracking-tight leading-none">
                   {formatCurrency(totalIncome)}
                 </span>
+              </div>
+
+              {/* Bottom helper label */}
+              <div className="text-[12px] font-medium text-text-muted mt-1 leading-none">
+                {language === 'th' ? 'ยอดรวมเดือนนี้' : 'Total income this month'}
               </div>
             </div>
 
             {/* Total Expense Card */}
-            <div 
-              className="relative overflow-hidden p-4 rounded-2xl border border-border/60 bg-bg-secondary flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-sm cursor-pointer"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                    {language === 'th' ? 'รายจ่ายทั้งหมด' : 'Total Expense'}
-                  </span>
-                  <span className="text-[9px] text-text-muted font-medium tracking-wide">
-                    Bank Account ********1965
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-expense-red bg-expense-red/10 px-2 py-0.5 rounded-full text-[9px] font-bold">
-                  <ArrowDownLeft size={12} />
+            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[116px] transition-transform duration-200 hover:scale-[1.02] shadow-[0_6px_20px_rgba(17,24,39,0.06)]">
+              {/* Title row */}
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[12px] font-bold text-text-primary">
+                  {language === 'th' ? 'รายจ่ายทั้งหมด' : 'Total Expense'}
+                </span>
+                <div className="flex items-center gap-1 text-expense-red bg-expense-red/10 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  <ArrowDownLeft size={10} />
                   <span>EXPENSE</span>
                 </div>
               </div>
 
-              <div className="mt-auto">
-                <span className="text-[10px] text-text-muted block font-medium">Total Spent</span>
-                <span className="text-lg font-extrabold text-expense-red tracking-tight">
+              {/* Meta row under title */}
+              <div className="text-[11px] font-medium text-text-muted opacity-65 mb-2 leading-none">
+                Bank Account ••••1965
+              </div>
+
+              {/* Center Amount Block */}
+              <div className="flex-1 flex flex-col justify-center">
+                <span className="text-[30px] font-bold text-expense-red tracking-tight leading-none">
                   {formatCurrency(totalExpense)}
                 </span>
+              </div>
+
+              {/* Bottom helper label */}
+              <div className="text-[12px] font-medium text-text-muted mt-1 leading-none">
+                {language === 'th' ? 'ยอดรวมเดือนนี้' : 'Total spent this month'}
               </div>
             </div>
           </div>
 
           {/* Donut Chart Component */}
           {breakdown.length > 0 ? (
-            <div 
-              className="p-4 flex flex-col items-center w-full" 
-              style={{ 
-                background: 'var(--color-bg-secondary)', 
-                border: '1px solid var(--color-border)', 
-                borderRadius: 16, 
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
-              }}
-            >
+            <div className="p-4 flex flex-col items-center w-full bg-bg-secondary border border-[#111827]/[0.08] dark:border-border/40 rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
               <DonutChart
                 data={breakdown}
                 month={chartPeriodText}
@@ -328,14 +307,7 @@ export default function StatsPage() {
               />
             </div>
           ) : (
-            <div 
-              className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full animate-fade-in" 
-              style={{ 
-                background: 'var(--color-bg-secondary)', 
-                border: '1px solid var(--color-border)', 
-                borderRadius: 16 
-              }}
-            >
+            <div className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full bg-bg-secondary border border-[#111827]/[0.08] dark:border-border/40 rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)] animate-fade-in">
               <BarChart3 size={32} className="text-accent-purple" />
               <span className="text-xs font-semibold">{t('common.noData')}</span>
             </div>
@@ -352,41 +324,18 @@ export default function StatsPage() {
           )}
 
           {/* Trend Bar Chart */}
-          <div 
-            className="p-4 w-full" 
-            style={{ 
-              background: 'var(--color-bg-secondary)', 
-              border: '1px solid var(--color-border)', 
-              borderRadius: 16, 
-              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
-            }}
-          >
+          <div className="p-4 w-full bg-bg-secondary border border-[#111827]/[0.08] dark:border-border/40 rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
             <TrendChart transactions={filteredTransactions} />
           </div>
 
           {/* Line Chart */}
-          <div 
-            className="p-4 w-full" 
-            style={{ 
-              background: 'var(--color-bg-secondary)', 
-              border: '1px solid var(--color-border)', 
-              borderRadius: 16, 
-              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
-            }}
-          >
+          <div className="p-4 w-full bg-bg-secondary border border-[#111827]/[0.08] dark:border-border/40 rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
             <LineChart transactions={filteredTransactions} />
           </div>
         </div>
       ) : (
         /* Budget or Notes placeholders matching aesthetics */
-        <div 
-          className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full" 
-          style={{ 
-            background: 'var(--color-bg-secondary)', 
-            border: '1px solid var(--color-border)', 
-            borderRadius: 20 
-          }}
-        >
+        <div className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full bg-bg-secondary border border-[#111827]/[0.08] dark:border-border/40 rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
           <BarChart3 size={32} className="text-accent-purple" />
           <span className="text-xs font-semibold">Coming Soon in next update!</span>
         </div>

@@ -101,7 +101,7 @@ export default function CategoryBreakdown({ data, onEditCategory }: CategoryBrea
           return (
             <div
               key={item.category}
-              className="transaction-item group"
+              className="flex items-center gap-3 py-2 px-3.5 h-[64px] rounded-xl bg-bg-secondary/30 hover:bg-bg-tertiary/20 transition-all group"
               style={{
                 animationDelay: `${index * 50}ms`,
                 animation: 'fadeIn 0.3s ease-out both',
@@ -109,7 +109,7 @@ export default function CategoryBreakdown({ data, onEditCategory }: CategoryBrea
             >
               {/* Percentage Badge */}
               <div
-                className="percentage-badge"
+                className="flex items-center justify-center h-7 min-w-[44px] px-2 rounded-lg text-xs font-bold flex-shrink-0"
                 style={{
                   background: `${item.color}20`,
                   color: item.color,
