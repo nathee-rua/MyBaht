@@ -100,16 +100,16 @@ export default function DateSelector({
         </div>
       </div>
 
-      {/* Date Navigation (High Contrast 3D Neobrutalist) */}
-      <div className="flex items-center justify-between bg-bg-secondary rounded-none p-3 border-2 border-accent-purple shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] transition-all">
+      {/* Date Navigation (Premium Rounded) */}
+      <div className="flex items-center justify-between bg-bg-secondary rounded-2xl p-3.5 border border-border/60 shadow-md">
         <button
           onClick={handlePrev}
-          className="p-2 hover:bg-accent-purple/10 rounded-none transition text-accent-purple active:translate-y-0.5 cursor-pointer flex items-center justify-center"
+          className="p-2 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center"
         >
-          <ChevronLeft size={20} className="stroke-[3]" />
+          <ChevronLeft size={20} />
         </button>
 
-        <div className="flex items-center gap-2 font-black text-text-primary">
+        <div className="flex items-center gap-2 font-bold text-text-primary">
           <Calendar size={16} className="text-accent-purple" />
           <span className="text-sm tracking-wide">
             {getFormattedDate()}
@@ -118,9 +118,9 @@ export default function DateSelector({
 
         <button
           onClick={handleNext}
-          className="p-2 hover:bg-accent-purple/10 rounded-none transition text-accent-purple active:translate-y-0.5 cursor-pointer flex items-center justify-center"
+          className="p-2 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center"
         >
-          <ChevronRight size={20} className="stroke-[3]" />
+          <ChevronRight size={20} />
         </button>
       </div>
     </div>

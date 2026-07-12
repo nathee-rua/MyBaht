@@ -123,32 +123,26 @@ export default function StatsPage() {
 
   return (
     <div className="page-container px-4 pt-4 flex flex-col gap-5">
-      {/* Header Tabs */}
-      <div className="tab-group flex w-full">
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`tab-item flex-1 text-center py-2 rounded-xl transition font-semibold cursor-pointer ${
-            activeTab === 'stats' ? 'active' : ''
-          }`}
-        >
-          {t('stats.title')}
-        </button>
-        <button
-          onClick={() => setActiveTab('budget')}
-          className={`tab-item flex-1 text-center py-2 rounded-xl transition font-semibold cursor-pointer ${
-            activeTab === 'budget' ? 'active' : ''
-          }`}
-        >
-          {t('stats.budget')}
-        </button>
-        <button
-          onClick={() => setActiveTab('note')}
-          className={`tab-item flex-1 text-center py-2 rounded-xl transition font-semibold cursor-pointer ${
-            activeTab === 'note' ? 'active' : ''
-          }`}
-        >
-          {t('stats.note')}
-        </button>
+      {/* Header Tabs (Pill Style) */}
+      <div className="flex justify-center w-full px-2 mb-1 mt-2">
+        <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 w-full max-w-[420px] mx-auto shadow-inner">
+          {(['stats', 'budget', 'note'] as const).map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                className={`flex-1 text-center py-2.5 text-xs font-black transition-all duration-300 cursor-pointer select-none rounded-full ${
+                  isActive
+                    ? 'bg-white dark:bg-bg-secondary text-accent-purple shadow-sm'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {t(tab === 'stats' ? 'stats.title' : `stats.${tab}`)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Mini Calendar Date Selector */}
@@ -263,7 +257,7 @@ export default function StatsPage() {
           <div className="grid grid-cols-2 gap-3.5 w-full">
             {/* Total Salary Card (Purple) */}
             <div 
-              className="relative overflow-hidden p-4 rounded-none border-2 flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-md cursor-pointer"
+              className="relative overflow-hidden p-4 rounded-2xl border flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-lg cursor-pointer"
               style={{ 
                 background: 'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)',
                 borderColor: 'rgba(255, 255, 255, 0.15)',
@@ -301,7 +295,7 @@ export default function StatsPage() {
 
             {/* Total Expense Card (Orange/Coral) */}
             <div 
-              className="relative overflow-hidden p-4 rounded-none border-2 flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-md cursor-pointer"
+              className="relative overflow-hidden p-4 rounded-2xl border flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-lg cursor-pointer"
               style={{ 
                 background: 'linear-gradient(135deg, #FF6B4A 0%, #D93B15 100%)',
                 borderColor: 'rgba(255, 255, 255, 0.15)',

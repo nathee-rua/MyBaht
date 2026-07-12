@@ -254,7 +254,7 @@ export default function MonthlyPage() {
 
           {/* AI Monthly Trend Analysis card */}
           <div 
-            className="p-5 flex flex-col gap-3.5 border-2 border-accent-purple bg-accent-purple/5 shadow-sm rounded-none"
+            className="p-5 flex flex-col gap-3.5 border border-accent-purple/35 bg-accent-purple/5 shadow-md rounded-2xl animate-scale-in"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -327,7 +327,7 @@ export default function MonthlyPage() {
                   return (
                     <div
                       key={tx.id}
-                      className="p-3.5 flex items-center justify-between border border-border/40 bg-bg-secondary/40 shadow-sm rounded-none border-l-4"
+                      className="p-3.5 flex items-center justify-between border border-border/40 bg-bg-secondary/40 shadow-sm rounded-2xl border-l-4 animate-scale-in"
                       style={{
                         borderLeftColor: isIncome ? 'var(--color-income-green)' : 'var(--color-expense-red)',
                       }}

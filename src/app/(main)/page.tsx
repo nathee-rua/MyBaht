@@ -641,17 +641,16 @@ export default function DashboardPage() {
       </div>
     </div>
 
-      {/* Three Dropdown Selectors (High-Contrast 3D Neobrutalist with extra spacing) */}
-      <div className="px-4 mt-8 mb-10 flex justify-center gap-3 w-full">
+      {/* Three Dropdown Selectors (Premium Rounded style) */}
+      <div className="px-4 mt-8 mb-8 flex justify-center gap-3 w-full">
         {/* Timeframe Dropdown */}
         <div className="relative flex items-center flex-1 max-w-[125px]">
           <select
             value={timeframe}
             onChange={(e) => handleTimeframeChange(e.target.value as any)}
-            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-none text-xs font-black border-2 shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] focus:outline-none cursor-pointer hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-2xl text-xs font-bold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
             style={{
               background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-accent-purple)',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -661,7 +660,7 @@ export default function DashboardPage() {
               </option>
             ))}
           </select>
-          <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-accent-purple" />
+          <ChevronDown size={14} className="absolute right-3.5 pointer-events-none text-text-secondary" />
         </div>
 
         {/* Category Dropdown */}
@@ -669,10 +668,9 @@ export default function DashboardPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-none text-xs font-black border-2 shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] focus:outline-none cursor-pointer hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-2xl text-xs font-bold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
             style={{
               background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-accent-purple)',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -682,7 +680,7 @@ export default function DashboardPage() {
               </option>
             ))}
           </select>
-          <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-accent-purple" />
+          <ChevronDown size={14} className="absolute right-3.5 pointer-events-none text-text-secondary" />
         </div>
 
         {/* Price Range Dropdown */}
@@ -690,10 +688,9 @@ export default function DashboardPage() {
           <select
             value={selectedPriceRange}
             onChange={(e) => setSelectedPriceRange(e.target.value)}
-            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-none text-xs font-black border-2 shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] focus:outline-none cursor-pointer hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-2xl text-xs font-bold border border-border/60 shadow-sm focus:outline-none cursor-pointer hover:border-accent-purple/60 transition-all"
             style={{
               background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-accent-purple)',
               color: 'var(--color-text-primary)',
             }}
           >
@@ -710,27 +707,21 @@ export default function DashboardPage() {
               );
             })}
           </select>
-          <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-accent-purple" />
+          <ChevronDown size={14} className="absolute right-3.5 pointer-events-none text-text-secondary" />
         </div>
       </div>
 
-      {/* Subtitle bar / Section header for Recent Transactions */}
-      <div className="px-4 mt-8 mb-4">
-        <div 
-          className="flex items-center justify-between px-4 py-3 border-2 border-accent-purple shadow-[2.5px_2.5px_0px_0px_rgba(124,58,237,1)] animate-fade-in"
-          style={{
-            background: 'var(--color-bg-secondary)',
-            borderColor: 'var(--color-accent-purple)',
-          }}
-        >
+      {/* Subtitle bar / Section header for Recent Transactions (Premium Rounded with Divider) */}
+      <div className="px-4 mt-6 mb-2">
+        <div className="flex items-center justify-between pb-2 border-b border-border/30">
           <span className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 bg-accent-purple rounded-none" />
+            <span className="w-1.5 h-3 bg-accent-purple rounded-full" />
             {t('summary.recent')}
           </span>
           <button
             type="button"
             onClick={() => router.push('/monthly')}
-            className="text-xs font-black text-accent-purple hover:text-accent-purple-light transition-colors cursor-pointer flex items-center gap-1"
+            className="text-xs font-bold text-accent-purple hover:text-accent-purple-light transition-colors cursor-pointer flex items-center gap-1"
           >
             <span>{language === 'th' ? 'ดูทั้งหมด' : 'View All'}</span>
             <span>&gt;</span>
