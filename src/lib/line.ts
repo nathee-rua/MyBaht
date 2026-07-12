@@ -1,6 +1,24 @@
+import crypto from 'crypto';
 import type { Transaction } from '@/types';
 
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
+
+// ===== Signature Verification =====
+
+export function verifyLineSignature(body: string, signature: string): boolean {
+  if (!LINE_CHANNEL_SECRET) {
+    console.warn('LINE_CHANNEL_SECRET not set — skipping signature verification');
+    return true; // allow in dev
+  }
+  const hash = crypto
+    .createHmac('SHA256', LINE_CHANNEL_SECRET)
+    .update(body)
+    .digest('base64');
+  return hash === signature;
+}
+
+// ===== Reply Message (uses replyToken — must be called within 1 min of event) =====
 
 export async function sendLineReplyMessage(
   replyToken: string,
@@ -8,13 +26,10 @@ export async function sendLineReplyMessage(
   quickReplyOptions?: Array<{ label: string; text: string; data?: string }>
 ) {
   if (!LINE_CHANNEL_ACCESS_TOKEN) {
-    console.error('LINE Channel Access Token is missing');
+    console.error('LINE_CHANNEL_ACCESS_TOKEN is missing — cannot reply');
     return;
   }
 
-  const url = 'https://api.line.me/v2/bot/message/reply';
-  
-  // Format quick replies if any
   const quickReply = quickReplyOptions && quickReplyOptions.length > 0 ? {
     items: quickReplyOptions.map(opt => ({
       type: 'action',
@@ -31,7 +46,7 @@ export async function sendLineReplyMessage(
     }))
   } : undefined;
 
-  const response = await fetch(url, {
+  const response = await fetch('https://api.line.me/v2/bot/message/reply', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,21 +54,63 @@ export async function sendLineReplyMessage(
     },
     body: JSON.stringify({
       replyToken,
-      messages: [
-        {
-          type: 'text',
-          text,
-          quickReply
-        },
-      ],
+      messages: [{ type: 'text', text, quickReply }],
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Failed to send LINE reply message:', errorText);
+    console.error('LINE reply failed:', response.status, errorText);
   }
 }
+
+// ===== Push Message (no replyToken needed — works anytime) =====
+
+export async function sendLinePushMessage(
+  userId: string,
+  text: string,
+  quickReplyOptions?: Array<{ label: string; text: string; data?: string }>
+) {
+  if (!LINE_CHANNEL_ACCESS_TOKEN) {
+    console.error('LINE_CHANNEL_ACCESS_TOKEN is missing — cannot push');
+    return;
+  }
+
+  const quickReply = quickReplyOptions && quickReplyOptions.length > 0 ? {
+    items: quickReplyOptions.map(opt => ({
+      type: 'action',
+      action: opt.data ? {
+        type: 'postback',
+        label: opt.label,
+        data: opt.data,
+        displayText: opt.text
+      } : {
+        type: 'message',
+        label: opt.label,
+        text: opt.text
+      }
+    }))
+  } : undefined;
+
+  const response = await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      to: userId,
+      messages: [{ type: 'text', text, quickReply }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('LINE push failed:', response.status, errorText);
+  }
+}
+
+// ===== Download Image =====
 
 export async function downloadLineFileAsBase64(messageId: string): Promise<string> {
   if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error('LINE Channel Access Token is missing');
@@ -73,6 +130,8 @@ export async function downloadLineFileAsBase64(messageId: string): Promise<strin
   const buffer = Buffer.from(arrayBuffer);
   return buffer.toString('base64');
 }
+
+// ===== Format Transaction =====
 
 export function formatTransactionForLine(tx: {
   amount: number;
