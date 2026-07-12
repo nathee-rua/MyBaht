@@ -23,6 +23,7 @@ import {
   Bot,
   Database,
   ShieldAlert,
+  MessageCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -307,6 +308,16 @@ export default function SettingsPage() {
           }
           onClick={() => router.push('/settings/telegram')}
         />
+
+        <SettingRow
+          icon={<MessageCircle size={18} color="#22C55E" />}
+          iconGradient="linear-gradient(135deg, rgba(34,197,94,0.25), rgba(22,163,74,0.1))"
+          label={t('settings.line')}
+          rightContent={
+            <ChevronRight size={16} className="text-text-muted" />
+          }
+          onClick={() => router.push('/settings/line')}
+        />
       </div>
 
       {/* ═══════════ Data ═══════════ */}
@@ -354,7 +365,7 @@ export default function SettingsPage() {
       {/* ═══════════ App Version Footer ═══════════ */}
       <div className="text-center py-6 pb-12 mt-2 leading-none flex-shrink-0">
         <p className="text-[11px] text-text-muted font-semibold">
-          MyBaht v1.1.0
+          MyBaht v1.2.0
         </p>
         <p className="text-[10px] text-text-muted/70 mt-1.5 font-normal leading-normal">
           {language === 'th' ? 'สร้างด้วย ❤️ สำหรับการจัดการการเงินที่ดีกว่า' : 'Built with ❤️ for better financial management'}

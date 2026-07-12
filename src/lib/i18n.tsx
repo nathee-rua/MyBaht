@@ -92,6 +92,7 @@ const translations: Record<string, Record<Language, string>> = {
   'settings.theme': { th: 'ธีม', en: 'Theme' },
   'settings.ai': { th: 'ตั้งค่า AI', en: 'AI Settings' },
   'settings.telegram': { th: 'เชื่อมต่อ Telegram', en: 'Connect Telegram' },
+  'settings.line': { th: 'เชื่อมต่อ LINE', en: 'Connect LINE' },
   'settings.export': { th: 'ส่งออกเป็น Excel', en: 'Export to Excel' },
   'settings.account': { th: 'จัดการบัญชี', en: 'Account' },
   
@@ -108,6 +109,11 @@ const translations: Record<string, Record<Language, string>> = {
   'telegram.connect': { th: 'เชื่อมต่อ Telegram Bot', en: 'Connect Telegram Bot' },
   'telegram.linked': { th: 'เชื่อมต่อแล้ว', en: 'Linked' },
   'telegram.unlinked': { th: 'ยังไม่เชื่อมต่อ', en: 'Not linked' },
+
+  // LINE
+  'line.connect': { th: 'เชื่อมต่อ LINE Bot', en: 'Connect LINE Bot' },
+  'line.linked': { th: 'เชื่อมต่อแล้ว', en: 'Linked' },
+  'line.unlinked': { th: 'ยังไม่เชื่อมต่อ', en: 'Not linked' },
   
   // Common
   'common.save': { th: 'บันทึก', en: 'Save' },
