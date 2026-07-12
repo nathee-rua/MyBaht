@@ -21,6 +21,51 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   },
 });
 
+function createSafeCallbackData(
+  amount: number,
+  category: string,
+  date: string,
+  merchant?: string | null,
+  note?: string | null
+): string {
+  const cleanMerchant = (merchant || 'none').replace(/:/g, ' '); // remove colons
+  const cleanNote = (note || 'none').replace(/:/g, ' ');
+  const dateStr = date.replace(/-/g, ''); // YYYYMMDD (8 chars)
+
+  // Base callback data length without merchant and note:
+  // "save:amount:category:YYYYMMDD::"
+  const base = `save:${amount}:${category}:${dateStr}::`;
+  const baseBytes = Buffer.byteLength(base);
+  const availableBytes = 64 - baseBytes;
+
+  if (availableBytes <= 0) {
+    // Fallback
+    return `save:${amount}:${category}:${dateStr}:none:none`;
+  }
+
+  // Allocate half of the remaining bytes to merchant, and half to note
+  const merchantBytesMax = Math.floor(availableBytes / 2);
+  const noteBytesMax = availableBytes - merchantBytesMax;
+
+  // Helper to truncate a string to a specific number of UTF-8 bytes
+  const truncateToBytes = (str: string, maxBytes: number) => {
+    const buf = Buffer.from(str);
+    if (buf.length <= maxBytes) return str;
+    // Truncate and make sure we don't break UTF-8 multi-byte characters
+    let sliced = buf.subarray(0, maxBytes).toString('utf-8');
+    // If truncation created a replacement character at the end, drop it
+    if (sliced.endsWith('')) {
+      sliced = sliced.slice(0, -1);
+    }
+    return sliced;
+  };
+
+  const finalMerchant = truncateToBytes(cleanMerchant, merchantBytesMax);
+  const finalNote = truncateToBytes(cleanNote, noteBytesMax);
+
+  return `save:${amount}:${category}:${dateStr}:${finalMerchant}:${finalNote}`;
+}
+
 export async function POST(req: Request) {
   try {
     const secretToken = req.headers.get('x-telegram-bot-api-secret-token');
@@ -39,14 +84,29 @@ export async function POST(req: Request) {
       const messageId = callbackQuery.message.message_id;
 
       if (data.startsWith('save:')) {
-        // format: save:userId:amount:category:date:merchant:note
+        // format: save:amount:category:dateYYYYMMDD:merchant:note
         const parts = data.split(':');
-        const userId = parts[1];
-        const amount = parseFloat(parts[2]);
-        const category = parts[3];
-        const date = parts[4];
-        const merchant = parts[5] === 'none' ? null : parts[5];
-        const note = parts[6] === 'none' ? null : parts[6];
+        const amount = parseFloat(parts[1]);
+        const category = parts[2];
+        const rawDate = parts[3]; // YYYYMMDD
+        const formattedDate = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+        const merchant = parts[4] === 'none' ? null : parts[4];
+        const note = parts[5] === 'none' ? null : parts[5];
+
+        // Find user by chatId
+        const { data: settings, error: settingsError } = await supabaseAdmin
+          .from('user_settings')
+          .select('user_id')
+          .eq('telegram_chat_id', chatId.toString())
+          .single();
+
+        if (settingsError || !settings) {
+          console.error('Error finding linked user for Telegram chatId:', chatId, settingsError);
+          await sendTelegramMessage(chatId, '❌ บัญชีของคุณยังไม่ได้เชื่อมต่อ หรือระบบหาบัญชีไม่พบ');
+          return NextResponse.json({ ok: true });
+        }
+
+        const userId = settings.user_id;
 
         // Insert transaction into database
         const { error } = await supabaseAdmin.from('transactions').insert({
@@ -54,7 +114,7 @@ export async function POST(req: Request) {
           kind: 'expense',
           amount,
           category,
-          date,
+          date: formattedDate,
           merchant,
           note,
           source: 'telegram',
@@ -178,7 +238,13 @@ export async function POST(req: Request) {
         });
 
         // Inline keyboard for Save/Cancel actions
-        const callbackData = `save:${settings.user_id}:${parsed.amount}:${parsed.category}:${parsed.date}:${parsed.merchant || 'none'}:${parsed.note || 'none'}`;
+        const callbackData = createSafeCallbackData(
+          parsed.amount,
+          parsed.category,
+          parsed.date,
+          parsed.merchant,
+          parsed.note
+        );
         await sendTelegramMessageWithKeyboard(chatId, formattedText, [
           [
             { text: '✅ บันทึกรายการ (Save)', callback_data: callbackData },
