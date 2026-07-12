@@ -77,18 +77,18 @@ export default function DateSelector({
   };
 
   return (
-    <div className="flex flex-col gap-4 py-2">
+    <div className="flex flex-col gap-3.5 py-1">
       {/* Tab Selector (Pill Style) */}
-      <div className="flex justify-center w-full px-2 mb-1">
-        <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 w-full max-w-[420px] mx-auto shadow-inner">
+      <div className="flex justify-center w-full px-1">
+        <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 h-11 w-full shadow-sm">
           {(['daily', 'weekly', 'monthly', 'calendar'] as DateFilter[]).map((f) => {
             const isActive = filter === f;
             return (
               <button
                 key={f}
-                className={`flex-1 text-center py-2.5 text-[11px] font-black transition-all duration-300 cursor-pointer select-none rounded-full ${
+                className={`flex-1 text-center h-9 text-[12px] font-semibold tracking-wide transition-all duration-200 cursor-pointer select-none rounded-full ${
                   isActive
-                    ? 'bg-white dark:bg-bg-secondary text-accent-purple shadow-sm'
+                    ? 'bg-white dark:bg-bg-secondary text-accent-purple shadow-sm font-bold'
                     : 'text-text-secondary hover:text-text-primary'
                 }`}
                 onClick={() => setFilter(f)}
@@ -101,26 +101,26 @@ export default function DateSelector({
       </div>
 
       {/* Date Navigation (Premium Rounded) */}
-      <div className="flex items-center justify-between bg-bg-secondary rounded-2xl p-3.5 border border-border/60 shadow-md">
+      <div className="flex items-center justify-between bg-bg-secondary rounded-[18px] p-2 border border-[#111827]/[0.08] dark:border-border/40 shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
         <button
           onClick={handlePrev}
-          className="p-2 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center"
+          className="w-9 h-9 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center flex-shrink-0"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} />
         </button>
 
-        <div className="flex items-center gap-2 font-bold text-text-primary">
-          <Calendar size={16} className="text-accent-purple" />
-          <span className="text-sm tracking-wide">
+        <div className="flex items-center gap-2 font-semibold text-text-primary">
+          <Calendar size={15} className="text-accent-purple" />
+          <span className="text-[13px] sm:text-sm font-bold tracking-tight">
             {getFormattedDate()}
           </span>
         </div>
 
         <button
           onClick={handleNext}
-          className="p-2 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center"
+          className="w-9 h-9 hover:bg-secondary/40 rounded-xl transition text-text-secondary active:scale-95 cursor-pointer flex items-center justify-center flex-shrink-0"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} />
         </button>
       </div>
     </div>
