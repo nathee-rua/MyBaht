@@ -354,7 +354,7 @@ export default function SettingsPage() {
       {/* ═══════════ App Version Footer ═══════════ */}
       <div className="text-center py-6 pb-12 mt-2 leading-none flex-shrink-0">
         <p className="text-[11px] text-text-muted font-semibold">
-          MyBaht v1.0.0
+          MyBaht v1.1.0
         </p>
         <p className="text-[10px] text-text-muted/70 mt-1.5 font-normal leading-normal">
           {language === 'th' ? 'สร้างด้วย ❤️ สำหรับการจัดการการเงินที่ดีกว่า' : 'Built with ❤️ for better financial management'}

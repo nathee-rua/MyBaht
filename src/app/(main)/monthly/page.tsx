@@ -97,7 +97,7 @@ export default function MonthlyPage() {
     if (c.includes('enter') || c.includes('หนัง') || c.includes('บันเทิง')) return <Play size={16} />;
     if (c.includes('salary') || c.includes('income') || c.includes('เงินเดือน')) return <DollarSign size={16} />;
     if (c.includes('health') || c.includes('หมอ') || c.includes('สุขภาพ')) return <Heart size={16} />;
-    if (c.includes('travel') || c.includes('car') || c.includes('รถ') || c.includes('เดินทาง')) return <Car size={16} />;
+    if (c.includes('travel') || c.includes('car') || c.includes('รถ') || c.includes('เดินทาง') || c.includes('transport')) return <Car size={16} />;
     return <HelpCircle size={16} />;
   };
 
@@ -109,7 +109,7 @@ export default function MonthlyPage() {
     if (c.includes('enter')) return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
     if (c.includes('salary')) return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
     if (c.includes('health')) return 'bg-teal-500/10 text-teal-500 border-teal-500/20';
-    if (c.includes('travel')) return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20';
+    if (c.includes('travel') || c.includes('car') || c.includes('รถ') || c.includes('เดินทาง') || c.includes('transport')) return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20';
     return 'bg-slate-500/10 text-slate-500 border-slate-500/20';
   };
 
