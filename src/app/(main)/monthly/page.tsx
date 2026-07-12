@@ -141,22 +141,49 @@ export default function MonthlyPage() {
     }
   };
 
-  // Load summary on month change if not cached
   useEffect(() => {
     if (selectedMonthIndex !== null && !aiSummaries[selectedMonthIndex]) {
       loadAISummary(selectedMonthIndex);
     }
   }, [selectedMonthIndex, aiSummaries]);
 
+  const renderAiSummary = (text: string) => {
+    const expIndex = text.indexOf('**Explanation**:') !== -1 ? text.indexOf('**Explanation**:') : text.indexOf('1. **Explanation**:');
+    const recIndex = text.indexOf('**Recommendation**:') !== -1 ? text.indexOf('**Recommendation**:') : text.indexOf('2. **Recommendation**:');
+    
+    if (expIndex !== -1 && recIndex !== -1) {
+      const explanationText = text.substring(expIndex + (text.includes('1. **Explanation**:') ? 19 : 16), recIndex).trim();
+      const recommendationText = text.substring(recIndex + (text.includes('2. **Recommendation**:') ? 22 : 19)).trim();
+      
+      return (
+        <div className="flex flex-col gap-2.5 text-[13px] leading-normal font-normal text-text-secondary">
+          <div className="bg-bg-tertiary/30 p-3 rounded-xl border border-border/40">
+            <span className="font-bold text-text-primary block mb-1">Insight</span>
+            <p className="leading-relaxed">{explanationText}</p>
+          </div>
+          <div className="bg-accent-purple/5 p-3 rounded-xl border border-accent-purple/20">
+            <span className="font-bold text-accent-purple block mb-1">Recommendation</span>
+            <p className="leading-relaxed">{recommendationText}</p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="text-[13px] leading-relaxed font-normal text-text-secondary whitespace-pre-line">
+        {text}
+      </div>
+    );
+  };
+
+  const hasAnyData = Object.values(monthlyGroups).some(txs => txs.length > 0);
+
   return (
     <div className="page-container px-4 pt-4 flex flex-col gap-4">
       {selectedMonthIndex === null ? (
-        // Master view: List of months
         <>
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-extrabold text-text-primary">{t('summary.monthlyOverview')}</h1>
-            <div className="flex items-center gap-1.5 bg-secondary/30 rounded-xl px-3 py-1.5 border border-border/20 text-xs font-semibold text-text-secondary">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-[28px] font-bold text-text-primary tracking-tight">{t('summary.monthlyOverview')}</h1>
+            <div className="flex items-center gap-1.5 bg-secondary/40 rounded-[10px] h-8 px-2.5 border border-[#111827]/[0.08] dark:border-border/30 text-xs font-semibold text-text-secondary">
               <Calendar size={14} className="text-accent-purple" />
               <span>{currentYear.getFullYear()}</span>
             </div>
@@ -166,11 +193,17 @@ export default function MonthlyPage() {
             <div className="flex items-center justify-center py-20">
               <RefreshCw size={24} className="animate-spin text-accent-purple" />
             </div>
+          ) : !hasAnyData ? (
+            <div className="p-6 text-center text-text-secondary border border-dashed border-border/40 rounded-[18px] bg-bg-secondary flex flex-col items-center justify-center gap-3">
+              <Calendar size={32} className="text-accent-purple" />
+              <span className="text-xs font-semibold">{t('common.noData')}</span>
+            </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {/* Loop over months (descending from current month) */}
+            <div className="flex flex-col gap-3 pb-24">
               {Array.from({ length: 12 }, (_, i) => 11 - i).map((monthIndex) => {
                 const txs = monthlyGroups[monthIndex];
+                if (!txs || txs.length === 0) return null;
+
                 const income = txs
                   .filter((tx) => tx.kind === 'income')
                   .reduce((sum, tx) => sum + Number(tx.amount), 0);
@@ -178,46 +211,38 @@ export default function MonthlyPage() {
                   .filter((tx) => tx.kind === 'expense')
                   .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-                if (txs.length === 0) return null;
-
                 return (
                   <button
                     type="button"
                     key={monthIndex}
                     onClick={() => setSelectedMonthIndex(monthIndex)}
-                    className="p-4 flex flex-col gap-3 transition text-left cursor-pointer shadow-sm w-full"
-                    style={{ 
-                      background: 'var(--color-bg-secondary)', 
-                      border: '1px solid var(--color-border)', 
-                      borderRadius: 20,
-                    }}
+                    className="h-[116px] p-3.5 flex flex-col justify-between transition-transform duration-200 hover:scale-[1.02] text-left cursor-pointer border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)] w-full"
                   >
-                    {/* Month Name and Totals */}
                     <div className="flex items-center justify-between w-full">
-                      <h3 className="font-extrabold text-text-primary capitalize">{getMonthName(monthIndex)}</h3>
+                      <h3 className="text-[22px] font-bold text-text-primary capitalize leading-none tracking-tight">{getMonthName(monthIndex)}</h3>
                       <ChevronRight size={16} className="text-text-muted" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 border-t border-border/10 pt-3 w-full">
+                    <div className="grid grid-cols-2 gap-1.5 border-t border-border/10 pt-2 w-full">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-lg bg-income-green/10 text-income-green">
+                        <div className="p-1 rounded-xl bg-income-green/10 text-income-green flex-shrink-0 flex items-center justify-center w-7 h-7">
                           <TrendingUp size={14} />
                         </div>
                         <div>
-                          <span className="text-[10px] text-text-muted block">{t('transaction.income')}</span>
-                          <span className="text-xs font-bold text-income-green">
+                          <span className="text-[11px] font-semibold text-text-secondary opacity-80 block leading-none mb-1">{t('transaction.income')}</span>
+                          <span className="text-[16px] font-extrabold font-mono tracking-tight leading-none text-income-green">
                             {formatCurrency(income).replace('THB', '').trim()}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-lg bg-expense-red/10 text-expense-red">
+                        <div className="p-1 rounded-xl bg-expense-red/10 text-expense-red flex-shrink-0 flex items-center justify-center w-7 h-7">
                           <TrendingDown size={14} />
                         </div>
                         <div>
-                          <span className="text-[10px] text-text-muted block">{t('transaction.outcome')}</span>
-                          <span className="text-xs font-bold text-expense-red">
+                          <span className="text-[11px] font-semibold text-text-secondary opacity-80 block leading-none mb-1">{t('transaction.outcome')}</span>
+                          <span className="text-[16px] font-extrabold font-mono tracking-tight leading-none text-expense-red">
                             {formatCurrency(expense).replace('THB', '').trim()}
                           </span>
                         </div>
@@ -230,42 +255,36 @@ export default function MonthlyPage() {
           )}
         </>
       ) : (
-        // Detail view: Specific month's transaction listing and AI Insights
         <>
-          {/* Header with Back Button */}
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSelectedMonthIndex(null)}
-              className="p-2 border border-border/40 hover:bg-secondary/40 transition cursor-pointer text-text-primary"
-              style={{ borderRadius: 12 }}
+              className="w-10 h-10 flex items-center justify-center border border-[#111827]/[0.08] dark:border-border/40 hover:bg-secondary/40 transition cursor-pointer text-text-primary rounded-xl active:scale-95 flex-shrink-0"
             >
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="text-lg font-extrabold text-text-primary capitalize">
+              <h1 className="text-[26px] font-bold text-text-primary capitalize leading-none tracking-tight">
                 {getMonthName(selectedMonthIndex)} {currentYear.getFullYear()}
               </h1>
-              <span className="text-[10px] text-text-muted font-bold block">
+              <span className="text-[11px] text-text-muted font-semibold block uppercase tracking-wide mt-1 leading-none">
                 {monthlyGroups[selectedMonthIndex].length} transactions total
               </span>
             </div>
           </div>
 
-          {/* AI Monthly Trend Analysis card */}
-          <div 
-            className="p-5 flex flex-col gap-3.5 border border-accent-purple/35 bg-accent-purple/5 shadow-md rounded-2xl animate-scale-in"
-          >
+          <div className="p-3.5 flex flex-col gap-3.5 border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary shadow-[0_6px_20px_rgba(17,24,39,0.04)] rounded-[18px] animate-scale-in mt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-xl bg-accent-purple/10 text-accent-purple">
+                <div className="p-1.5 rounded-xl bg-accent-purple/10 text-accent-purple flex items-center justify-center w-8 h-8">
                   <Brain size={18} className="animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-text-primary uppercase tracking-wider">
+                  <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider">
                     AI Insight & Trend Analysis
                   </h3>
-                  <span className="text-[9px] text-text-muted font-bold lowercase tracking-normal block">
+                  <span className="text-[9px] text-text-muted font-bold lowercase tracking-normal block leading-none mt-0.5">
                     Monthly Pattern Summary
                   </span>
                 </div>
@@ -274,7 +293,7 @@ export default function MonthlyPage() {
                 type="button"
                 onClick={() => loadAISummary(selectedMonthIndex)}
                 disabled={generatingSummary}
-                className="p-1.5 hover:bg-accent-purple/10 text-accent-purple rounded transition cursor-pointer disabled:opacity-40"
+                className="w-9 h-9 flex items-center justify-center hover:bg-secondary/40 text-accent-purple rounded-xl transition cursor-pointer disabled:opacity-40 flex-shrink-0 border border-border/40 active:scale-95"
                 title="Regenerate Summary"
               >
                 <RefreshCw size={14} className={generatingSummary ? 'animate-spin' : ''} />
@@ -296,9 +315,7 @@ export default function MonthlyPage() {
                 </div>
               </div>
             ) : aiSummaries[selectedMonthIndex] ? (
-              <div className="text-xs text-text-secondary leading-relaxed font-medium whitespace-pre-line">
-                {aiSummaries[selectedMonthIndex]}
-              </div>
+              renderAiSummary(aiSummaries[selectedMonthIndex])
             ) : (
               <div className="text-xs text-text-muted italic py-2 text-center">
                 No summary generated yet. Click refresh to analyze.
@@ -306,15 +323,13 @@ export default function MonthlyPage() {
             )}
           </div>
 
-          {/* Details Listing Header */}
-          <h2 className="text-xs font-black text-text-secondary uppercase tracking-wider mt-2">
+          <h2 className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mt-5 mb-1 pl-1">
             Detailed Transactions
           </h2>
 
-          {/* Transaction List */}
-          <div className="flex flex-col gap-2.5 pb-8">
+          <div className="flex flex-col gap-2 pb-[96px]">
             {monthlyGroups[selectedMonthIndex].length === 0 ? (
-              <div className="text-center py-10 text-text-muted text-xs font-medium border border-dashed border-border/40 p-4">
+              <div className="text-center py-10 text-text-muted text-xs font-medium border border-dashed border-border/40 p-4 rounded-xl">
                 No transactions for this month.
               </div>
             ) : (
@@ -322,45 +337,48 @@ export default function MonthlyPage() {
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((tx) => {
                   const isIncome = tx.kind === 'income';
-                  const amountStr = (isIncome ? '+' : '-') + formatCurrency(Number(tx.amount)).replace('THB', '').trim();
+                  const amountStr = (isIncome ? '+' : '−') + formatCurrency(Number(tx.amount)).replace('THB', '').trim();
                   
+                  const isLargeAmount = Number(tx.amount) >= 10000;
+                  const amountFontSizeClass = isLargeAmount ? 'text-[20px] sm:text-[22px]' : 'text-[16px] sm:text-[18px]';
+
                   return (
                     <div
                       key={tx.id}
-                      className="p-3.5 flex items-center justify-between border border-border/40 bg-bg-secondary/40 shadow-sm rounded-2xl animate-scale-in"
+                      className="h-[76px] px-3 py-2.5 flex items-center justify-between border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary hover:bg-secondary/10 transition-colors rounded-[18px] shadow-[0_4px_12px_rgba(17,24,39,0.02)] animate-scale-in"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`p-2 rounded-xl flex-shrink-0 border ${getCategoryColor(tx.category)}`}>
+                        <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 border ${getCategoryColor(tx.category)}`}>
                           {getCategoryIcon(tx.category)}
                         </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-black text-text-primary capitalize">
+                        <div className="min-w-0 flex flex-col justify-center">
+                          <div className="flex items-center">
+                            <span className="text-[13px] sm:text-[14px] font-semibold text-text-primary capitalize leading-none">
                               {t(`category.${tx.category.toLowerCase()}`) || tx.category}
                             </span>
                             {tx.payment_method && (
-                              <span className="px-1.5 py-0.5 rounded bg-secondary/50 border border-border/20 text-[8px] font-black text-text-muted uppercase">
+                              <span className="h-4.5 px-1.5 flex items-center justify-center rounded bg-secondary/50 border border-border/20 text-[9px] font-bold text-text-secondary/70 uppercase leading-none tracking-wider ml-1.5">
                                 {tx.payment_method}
                               </span>
                             )}
                           </div>
                           {tx.merchant && (
-                            <span className="text-[10px] text-text-secondary block font-semibold truncate">
+                            <span className="text-[11px] text-text-secondary/70 block truncate mt-0.5 leading-none">
                               {tx.merchant}
                             </span>
                           )}
                           {tx.note && (
-                            <span className="text-[10px] text-text-muted block truncate italic">
+                            <span className="text-[11px] font-normal italic text-text-muted/80 block truncate mt-0.5 leading-none">
                               "{tx.note}"
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0 pl-2">
-                        <span className={`text-xs font-black ${isIncome ? 'text-income-green' : 'text-expense-red'}`}>
+                      <div className="text-right flex-shrink-0 pl-2 flex flex-col justify-center">
+                        <span className={`${amountFontSizeClass} font-bold font-mono tracking-tight leading-none ${isIncome ? 'text-income-green' : 'text-expense-red'}`}>
                           {amountStr}
                         </span>
-                        <span className="text-[9px] text-text-muted block font-medium mt-0.5">
+                        <span className="text-[10px] text-text-muted/70 block font-semibold tracking-wide uppercase mt-1 leading-none">
                           {format(new Date(tx.date), 'dd MMM yyyy')}
                         </span>
                       </div>
@@ -372,7 +390,6 @@ export default function MonthlyPage() {
         </>
       )}
 
-      {/* Add Dialog */}
       <AddTransactionDialog
         open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
