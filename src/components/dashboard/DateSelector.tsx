@@ -78,42 +78,49 @@ export default function DateSelector({
 
   return (
     <div className="flex flex-col gap-4 py-2">
-      {/* Tab Selector */}
-      <div className="tab-group flex w-full">
-        {(['daily', 'weekly', 'monthly', 'calendar'] as DateFilter[]).map((f) => (
-          <button
-            key={f}
-            className={`tab-item flex-1 text-center py-2 rounded-xl transition ${
-              filter === f ? 'active' : ''
-            }`}
-            onClick={() => setFilter(f)}
-          >
-            {t(`filter.${f}`)}
-          </button>
-        ))}
+      {/* Tab Selector (Pill Style) */}
+      <div className="flex justify-center w-full px-2 mb-1">
+        <div className="flex items-center bg-bg-tertiary/40 border border-border/40 rounded-full p-1 w-full max-w-[420px] mx-auto shadow-inner">
+          {(['daily', 'weekly', 'monthly', 'calendar'] as DateFilter[]).map((f) => {
+            const isActive = filter === f;
+            return (
+              <button
+                key={f}
+                className={`flex-1 text-center py-2.5 text-[11px] font-black transition-all duration-300 cursor-pointer select-none rounded-full ${
+                  isActive
+                    ? 'bg-white dark:bg-bg-secondary text-accent-purple shadow-sm'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+                onClick={() => setFilter(f)}
+              >
+                {t(`filter.${f}`)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Date Navigation */}
-      <div className="flex items-center justify-between bg-secondary/30 rounded-2xl p-2 border border-border/50">
+      {/* Date Navigation (High Contrast 3D Neobrutalist) */}
+      <div className="flex items-center justify-between bg-bg-secondary rounded-none p-3 border-2 border-accent-purple shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] transition-all">
         <button
           onClick={handlePrev}
-          className="p-2 hover:bg-border/30 rounded-xl transition text-text-secondary"
+          className="p-2 hover:bg-accent-purple/10 rounded-none transition text-accent-purple active:translate-y-0.5 cursor-pointer flex items-center justify-center"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={20} className="stroke-[3]" />
         </button>
 
-        <div className="flex items-center gap-2 font-semibold">
+        <div className="flex items-center gap-2 font-black text-text-primary">
           <Calendar size={16} className="text-accent-purple" />
-          <span className="text-sm md:text-base text-text-primary">
+          <span className="text-sm tracking-wide">
             {getFormattedDate()}
           </span>
         </div>
 
         <button
           onClick={handleNext}
-          className="p-2 hover:bg-border/30 rounded-xl transition text-text-secondary"
+          className="p-2 hover:bg-accent-purple/10 rounded-none transition text-accent-purple active:translate-y-0.5 cursor-pointer flex items-center justify-center"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={20} className="stroke-[3]" />
         </button>
       </div>
     </div>

@@ -431,7 +431,7 @@ export default function DashboardPage() {
           
           {/* Active Card */}
           <div 
-            className="w-[90%] mx-auto h-[176px] rounded-none py-4 px-5 relative overflow-hidden flex flex-col justify-between border-2 border-white/20 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
+            className="w-[90%] mx-auto h-[176px] rounded-none py-5 px-6 relative overflow-hidden flex flex-col justify-between border-2 border-white/20 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
             style={{ 
               background: activeAccount.gradient,
             }}
@@ -440,32 +440,22 @@ export default function DashboardPage() {
             <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
             <div className="absolute -left-10 -bottom-10 w-44 h-44 rounded-full bg-white/5 blur-3xl pointer-events-none" />
 
-            {/* Top section: chip, balance */}
-            <div className="flex items-start justify-between">
-              <div className="flex flex-col min-w-0">
-                <span className="text-[9px] text-white/70 uppercase tracking-widest font-black truncate">
-                  {activeAccount.name === 'All Accounts' ? t('card.availableBalance') : `${activeAccount.name} Balance`}
-                </span>
-                <span className="text-2xl font-black text-white mt-0.5 tracking-tight flex items-baseline gap-1 truncate">
-                  <span>{formatCurrency(getAccountBalance(activeAccount.method)).replace('THB', '').trim()}</span>
-                  <span className="text-xs font-bold opacity-80">THB</span>
-                </span>
-              </div>
-              
-              {/* Gold Chip or Cash Icon / Symbol + AI Ready status */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Top row: Account Name & AI Ready Badge + Gold Chip */}
+            <div className="flex justify-between items-center w-full z-10">
+              <span className="text-[10px] text-white/70 uppercase tracking-widest font-black">
+                {activeAccount.name === 'All Accounts' ? t('card.availableBalance') : `${activeAccount.name}`}
+              </span>
+              <div className="flex items-center gap-2">
                 {aiReady && (
-                  <div className="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-500/40 px-2 py-1 text-[9px] font-black text-emerald-300 select-none rounded-md shadow-sm">
-                    <Sparkles size={10} className="animate-pulse fill-emerald-300/20" />
+                  <div className="flex items-center gap-1 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[9px] font-black text-emerald-300 select-none rounded-none shadow-sm animate-pulse">
+                    <Sparkles size={10} className="fill-emerald-300/20" />
                     <span>AI READY</span>
                   </div>
                 )}
                 {activeAccount.iconType === 'cash' ? (
-                  <div className="w-10 h-7 rounded-md bg-emerald-400/25 border border-emerald-400/40 flex items-center justify-center text-[15px] font-bold text-emerald-300">
-                    ฿
-                  </div>
+                  <span className="text-[10px] font-black text-white/90 bg-white/10 px-2 py-0.5 rounded-none border border-white/10">{t('card.cash')}</span>
                 ) : (
-                  <div className="w-10 h-7 rounded-md bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1.5 justify-center relative overflow-hidden">
+                  <div className="w-9 h-6.5 rounded-none bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1 justify-center relative overflow-hidden">
                     <div className="w-full h-px bg-yellow-400/30" />
                     <div className="w-full h-px bg-yellow-400/30" />
                     <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
@@ -475,27 +465,25 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Middle section: Card number */}
-            <div className="text-[14px] text-white/80 tracking-[0.20em] font-mono my-1 truncate">
-              {activeAccount.cardNumber}
+            {/* Center Section: Centered balance with large text */}
+            <div className="flex flex-col items-center justify-center my-auto z-10">
+              <span className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-baseline justify-center gap-1.5">
+                <span>{formatCurrency(getAccountBalance(activeAccount.method)).replace('THB', '').trim()}</span>
+                <span className="text-sm font-bold opacity-80">THB</span>
+              </span>
             </div>
 
-            {/* Bottom section: Card holder and MasterCard brand circles */}
-            <div className="flex items-end justify-between">
-              <div className="flex flex-col min-w-0 pr-2">
-                <span className="text-[8px] text-white/50 uppercase tracking-wider font-semibold truncate">{t('card.cardHolder')}</span>
-                <span className="text-xs font-bold text-white tracking-wide uppercase mt-0.5 truncate">
+            {/* Bottom Section: Card holder & card number */}
+            <div className="flex justify-between items-end w-full z-10 text-[10px]">
+              <div className="flex flex-col">
+                <span className="text-[7px] text-white/50 uppercase tracking-wider font-semibold">{t('card.cardHolder')}</span>
+                <span className="font-bold text-white tracking-wide uppercase mt-0.5">
                   {username}
                 </span>
               </div>
-              {activeAccount.iconType === 'cash' ? (
-                <span className="text-[10px] font-black text-white/95 bg-white/10 px-2 py-0.5 rounded border border-white/10 flex-shrink-0">{t('card.cash')}</span>
-              ) : (
-                <div className="flex items-center flex-shrink-0">
-                  <div className="w-6 h-6 rounded-full bg-red-500/85 z-10 -mr-2.5" />
-                  <div className="w-6 h-6 rounded-full bg-amber-500/85" />
-                </div>
-              )}
+              <div className="font-mono tracking-[0.15em] text-white/85 text-right">
+                {activeAccount.cardNumber}
+              </div>
             </div>
           </div>
         </div>
@@ -653,14 +641,14 @@ export default function DashboardPage() {
       </div>
     </div>
 
-      {/* Three Dropdown Selectors */}
-      <div className="px-4 mt-6 mb-8 flex justify-center gap-2.5 w-full">
+      {/* Three Dropdown Selectors (High-Contrast 3D Neobrutalist with extra spacing) */}
+      <div className="px-4 mt-8 mb-10 flex justify-center gap-3 w-full">
         {/* Timeframe Dropdown */}
-        <div className="relative flex items-center flex-1 max-w-[120px]">
+        <div className="relative flex items-center flex-1 max-w-[125px]">
           <select
             value={timeframe}
             onChange={(e) => handleTimeframeChange(e.target.value as any)}
-            className="w-full appearance-none pl-3 pr-8 py-3 rounded-none text-xs font-black border-2 shadow-[2px_2px_0px_0px_rgba(124,58,237,0.2)] focus:outline-none cursor-pointer transition-all active:translate-y-0.5 active:shadow-none"
+            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-none text-xs font-black border-2 shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] focus:outline-none cursor-pointer hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             style={{
               background: 'var(--color-bg-secondary)',
               borderColor: 'var(--color-accent-purple)',
@@ -677,11 +665,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Category Dropdown */}
-        <div className="relative flex items-center flex-1 max-w-[120px]">
+        <div className="relative flex items-center flex-1 max-w-[125px]">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full appearance-none pl-3 pr-8 py-3 rounded-none text-xs font-black border-2 shadow-[2px_2px_0px_0px_rgba(124,58,237,0.2)] focus:outline-none cursor-pointer transition-all active:translate-y-0.5 active:shadow-none"
+            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-none text-xs font-black border-2 shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] focus:outline-none cursor-pointer hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             style={{
               background: 'var(--color-bg-secondary)',
               borderColor: 'var(--color-accent-purple)',
@@ -698,11 +686,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Price Range Dropdown */}
-        <div className="relative flex items-center flex-1 max-w-[120px]">
+        <div className="relative flex items-center flex-1 max-w-[125px]">
           <select
             value={selectedPriceRange}
             onChange={(e) => setSelectedPriceRange(e.target.value)}
-            className="w-full appearance-none pl-3 pr-8 py-3 rounded-none text-xs font-black border-2 shadow-[2px_2px_0px_0px_rgba(124,58,237,0.2)] focus:outline-none cursor-pointer transition-all active:translate-y-0.5 active:shadow-none"
+            className="w-full appearance-none pl-3 pr-8 py-3.5 rounded-none text-xs font-black border-2 shadow-[3px_3px_0px_0px_rgba(124,58,237,1)] focus:outline-none cursor-pointer hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             style={{
               background: 'var(--color-bg-secondary)',
               borderColor: 'var(--color-accent-purple)',
@@ -726,18 +714,28 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Expenses Header */}
-      <div className="px-4 pb-1.5 flex items-center justify-between">
-        <h3 className="text-xs font-black text-text-secondary uppercase tracking-wider">
-          {t('summary.recent')}
-        </h3>
-        <button
-          type="button"
-          onClick={() => router.push('/monthly')}
-          className="text-xs font-bold text-accent-purple-light hover:text-accent-purple transition-colors cursor-pointer"
+      {/* Subtitle bar / Section header for Recent Transactions */}
+      <div className="px-4 mt-8 mb-4">
+        <div 
+          className="flex items-center justify-between px-4 py-3 border-2 border-accent-purple shadow-[2.5px_2.5px_0px_0px_rgba(124,58,237,1)] animate-fade-in"
+          style={{
+            background: 'var(--color-bg-secondary)',
+            borderColor: 'var(--color-accent-purple)',
+          }}
         >
-          View All &gt;
-        </button>
+          <span className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 bg-accent-purple rounded-none" />
+            {t('summary.recent')}
+          </span>
+          <button
+            type="button"
+            onClick={() => router.push('/monthly')}
+            className="text-xs font-black text-accent-purple hover:text-accent-purple-light transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <span>{language === 'th' ? 'ดูทั้งหมด' : 'View All'}</span>
+            <span>&gt;</span>
+          </button>
+        </div>
       </div>
 
       {/* Transaction List */}
