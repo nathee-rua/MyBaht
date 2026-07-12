@@ -7,6 +7,7 @@ import { useTheme } from '@/lib/theme';
 import { createClient } from '@/lib/supabase/client';
 import { getTransactions } from '@/lib/expenses';
 import AISettingsDialog from '@/components/ai/AISettingsDialog';
+import RemindersDialog from '@/components/settings/RemindersDialog';
 import AddTransactionDialog from '@/components/transaction/AddTransactionDialog';
 import {
   Globe,
@@ -24,6 +25,9 @@ import {
   Database,
   ShieldAlert,
   MessageCircle,
+  Bell,
+  RotateCcw,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -99,15 +103,103 @@ function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }
   );
 }
 
+/* ────────── Pill badge for values ────────── */
+function ValuePill({ children, color }: { children: React.ReactNode; color?: string }) {
+  return (
+    <span
+      className="inline-flex items-center justify-center h-6.5 text-[11px] font-semibold px-2.5 rounded-[8px] tracking-wide"
+      style={{
+        color: color || C.accentLight,
+        background: `${color || C.accent}15`,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 /* ──────────────────── Main Page Component ──────────────────── */
 export default function SettingsPage() {
   const router = useRouter();
   const { language, setLanguage, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [showAiDialog, setShowAiDialog] = useState(false);
+  const [showRemindersDialog, setShowRemindersDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [username, setUsername] = useState('User');
+
+  const handleResetSettings = async () => {
+    if (!confirm(language === 'th' ? 'คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตการตั้งค่าทั้งหมดกลับเป็นค่าเริ่มต้น?' : 'Are you sure you want to reset all settings to defaults?')) return;
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('user_settings')
+        .update({
+          ai_provider: null,
+          ai_api_key_encrypted: null,
+          ai_model: null,
+          telegram_chat_id: null,
+          line_chat_id: null,
+          line_link_code: null,
+          line_link_code_expires: null,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Clear local storage config
+      localStorage.removeItem('mb_living_budget');
+      localStorage.removeItem('mb_dca_budget');
+      localStorage.removeItem('mb_category_budgets');
+      localStorage.removeItem('mb_reminders_config');
+
+      toast.success(language === 'th' ? 'รีเซ็ตการตั้งค่าเรียบร้อยแล้ว!' : 'Settings reset successfully!');
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Reset failed: ${msg}`);
+    }
+  };
+
+  const handleResetAllData = async () => {
+    const confirmation = prompt(
+      language === 'th'
+        ? 'กรุณาพิมพ์ "DELETE ALL" เพื่อยืนยันการลบธุรกรรม บันทึก และระบบแจ้งเตือนทั้งหมดอย่างถาวร:'
+        : 'Type "DELETE ALL" to confirm deleting all your transactions, budgets, notes, and reminders permanently:'
+    );
+
+    if (confirmation !== 'DELETE ALL') {
+      toast.error(language === 'th' ? 'การยืนยันไม่ถูกต้อง ยกเลิกการรีเซ็ตข้อมูล' : 'Confirmation mismatch. Reset cancelled.');
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Clear all local storage
+      localStorage.clear();
+
+      toast.success(language === 'th' ? 'ลบข้อมูลผู้ใช้ทั้งหมดสำเร็จแล้ว!' : 'All app data deleted successfully!');
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Wipe failed: ${msg}`);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -183,19 +275,6 @@ export default function SettingsPage() {
       setExporting(false);
     }
   };
-
-  /* ────────── Pill badge for values ────────── */
-  const ValuePill = ({ children, color }: { children: React.ReactNode; color?: string }) => (
-    <span
-      className="inline-flex items-center justify-center h-6.5 text-[11px] font-semibold px-2.5 rounded-[8px] tracking-wide"
-      style={{
-        color: color || C.accentLight,
-        background: `${color || C.accent}15`,
-      }}
-    >
-      {children}
-    </span>
-  );
 
   return (
     <div className="page-container px-4 py-4 pb-28 flex flex-col gap-5 bg-bg-primary min-h-screen">
@@ -318,6 +397,16 @@ export default function SettingsPage() {
           }
           onClick={() => router.push('/settings/line')}
         />
+
+        <SettingRow
+          icon={<Bell size={18} color="#A855F7" />}
+          iconGradient="linear-gradient(135deg, rgba(168,85,247,0.25), rgba(147,51,234,0.1))"
+          label={language === 'th' ? 'การแจ้งเตือน & ระบบช่วยจำ' : 'Reminders & Alerts'}
+          rightContent={
+            <ChevronRight size={16} className="text-text-muted" />
+          }
+          onClick={() => setShowRemindersDialog(true)}
+        />
       </div>
 
       {/* ═══════════ Data ═══════════ */}
@@ -354,6 +443,21 @@ export default function SettingsPage() {
         />
 
         <SettingRow
+          icon={<RotateCcw size={18} color="#EAB308" />}
+          iconGradient="linear-gradient(135deg, rgba(234,179,8,0.2), rgba(202,138,4,0.08))"
+          label={language === 'th' ? 'รีเซ็ตการตั้งค่าทั้งหมด' : 'Reset Settings Only'}
+          onClick={handleResetSettings}
+        />
+
+        <SettingRow
+          icon={<Trash2 size={18} color="#EF4444" />}
+          iconGradient="linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.08))"
+          label={language === 'th' ? 'รีเซ็ตลบข้อมูลในแอปทั้งหมด' : 'Reset All App Data'}
+          onClick={handleResetAllData}
+          danger
+        />
+
+        <SettingRow
           icon={<LogOut size={18} color="#F87171" />}
           iconGradient="linear-gradient(135deg, rgba(248,113,113,0.2), rgba(239,68,68,0.08))"
           label={t('auth.logout')}
@@ -374,6 +478,9 @@ export default function SettingsPage() {
 
       {/* ═══════════ AI Settings Modal ═══════════ */}
       <AISettingsDialog open={showAiDialog} onClose={() => setShowAiDialog(false)} />
+
+      {/* ═══════════ Reminders Alerts Modal ═══════════ */}
+      <RemindersDialog open={showRemindersDialog} onClose={() => setShowRemindersDialog(false)} />
 
       {/* ═══════════ Add Transaction Modal ═══════════ */}
       <AddTransactionDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} onSuccess={() => {}} />

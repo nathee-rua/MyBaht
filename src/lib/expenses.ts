@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
-import type { Transaction, TransactionFormData, SummaryData, CategoryBreakdownItem, ChartDataPoint, Category } from '@/types';
+import type { Transaction, TransactionFormData, SummaryData, CategoryBreakdownItem, ChartDataPoint, Category, TransactionClassification, AdvancedSummaryData } from '@/types';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, CHART_COLORS } from '@/types';
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format, subDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } from 'date-fns';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, format, subDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } from 'date-fns';
 
 // ===== CRUD Operations =====
 
@@ -234,3 +234,70 @@ export function getCategoryInfo(categoryId: string) {
 export function getCategoryColor(index: number): string {
   return CHART_COLORS[index % CHART_COLORS.length];
 }
+
+// ===== Advanced Analysis & Classifications =====
+
+export function getTransactionClassification(tx: Transaction): TransactionClassification {
+  if (tx.classification) return tx.classification;
+  
+  // Backward compatibility fallback rules:
+  if (tx.category === 'investment') return 'dca';
+  if (tx.payment_method === 'savings') return 'transfer';
+  return 'living';
+}
+
+export function calculateAdvancedSummary(
+  transactions: Transaction[],
+  referenceDate: Date = new Date()
+): AdvancedSummaryData {
+  const refYear = referenceDate.getFullYear();
+  const refMonth = referenceDate.getMonth(); // 0-indexed
+
+  const monthly = { livingExpense: 0, dca: 0, transfer: 0, income: 0 };
+  const cumulativeYear = { livingExpense: 0, dca: 0, transfer: 0, income: 0 };
+  const cumulativeAll = { livingExpense: 0, dca: 0, transfer: 0, income: 0 };
+
+  for (const tx of transactions) {
+    const txDate = new Date(tx.date);
+    const txYear = txDate.getFullYear();
+    const txMonth = txDate.getMonth();
+
+    const amount = Number(tx.amount);
+    const classification = getTransactionClassification(tx);
+    const isIncome = tx.kind === 'income';
+
+    // 1. Cumulative All
+    if (isIncome) {
+      cumulativeAll.income += amount;
+    } else {
+      if (classification === 'living') cumulativeAll.livingExpense += amount;
+      else if (classification === 'dca') cumulativeAll.dca += amount;
+      else if (classification === 'transfer') cumulativeAll.transfer += amount;
+    }
+
+    // 2. Cumulative Year
+    if (txYear === refYear) {
+      if (isIncome) {
+        cumulativeYear.income += amount;
+      } else {
+        if (classification === 'living') cumulativeYear.livingExpense += amount;
+        else if (classification === 'dca') cumulativeYear.dca += amount;
+        else if (classification === 'transfer') cumulativeYear.transfer += amount;
+      }
+
+      // 3. Monthly
+      if (txMonth === refMonth) {
+        if (isIncome) {
+          monthly.income += amount;
+        } else {
+          if (classification === 'living') monthly.livingExpense += amount;
+          else if (classification === 'dca') monthly.dca += amount;
+          else if (classification === 'transfer') monthly.transfer += amount;
+        }
+      }
+    }
+  }
+
+  return { monthly, cumulativeYear, cumulativeAll };
+}
+

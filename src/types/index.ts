@@ -42,6 +42,7 @@ export interface Transaction {
   ai_extracted: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  classification?: TransactionClassification;
 }
 
 export interface UserSettings {
@@ -64,6 +65,7 @@ export interface TransactionFormData {
   merchant: string;
   payment_method: PaymentMethod;
   date: string;
+  classification?: TransactionClassification;
 }
 
 export interface SlipAnalysisResult {
@@ -147,3 +149,68 @@ export const CHART_COLORS = [
   '#EC4899', '#8B5CF6', '#14B8A6', '#F97316', '#3B82F6',
   '#A855F7', '#84CC16'
 ];
+
+// ===== Investment & Advanced Analysis Foundation =====
+
+export type TransactionClassification = 'living' | 'dca' | 'transfer';
+
+export type DataMode = 'monthly' | 'cumulativeYear' | 'cumulativeAll';
+
+export interface AdvancedSummaryData {
+  monthly: {
+    livingExpense: number;
+    dca: number;
+    transfer: number;
+    income: number;
+  };
+  cumulativeYear: {
+    livingExpense: number;
+    dca: number;
+    transfer: number;
+    income: number;
+  };
+  cumulativeAll: {
+    livingExpense: number;
+    dca: number;
+    transfer: number;
+    income: number;
+  };
+}
+
+export interface InvestmentPlan {
+  id: string;
+  user_id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  monthly_dca_target: number;
+  start_date: string;
+  target_date?: string;
+  asset_type?: 'stocks' | 'crypto' | 'mutual_funds' | 'gold' | 'other';
+  notes?: string;
+  created_at?: string;
+}
+
+export interface InvestmentRecord {
+  id: string;
+  plan_id?: string;
+  transaction_id?: string;
+  amount: number;
+  date: string;
+  price?: number;
+  units?: number;
+  type: 'buy' | 'sell' | 'dividend';
+  name?: string; // Add name support for custom record names
+}
+
+export interface InvestmentReminder {
+  id: string;
+  user_id?: string;
+  plan_id?: string;
+  day_of_month: number;
+  amount: number;
+  message?: string;
+  active: boolean;
+  name?: string; // Add name support for custom reminder names
+}
+

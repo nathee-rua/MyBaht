@@ -8,7 +8,6 @@ import {
   TrendingDown, 
   RefreshCw, 
   ArrowLeft, 
-  Sparkles, 
   Brain, 
   Loader2, 
   Utensils, 
@@ -21,7 +20,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
-import { getTransactions } from '@/lib/expenses';
+import { getTransactions, getTransactionClassification } from '@/lib/expenses';
 import type { Transaction } from '@/types';
 import AddTransactionDialog from '@/components/transaction/AddTransactionDialog';
 import { startOfYear, endOfYear, format } from 'date-fns';
@@ -31,7 +30,7 @@ export default function MonthlyPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [currentYear, setCurrentYear] = useState(new Date());
+  const [currentYear] = useState(new Date());
 
   // Master-Detail State
   const [selectedMonthIndex, setSelectedMonthIndex] = useState<number | null>(null);
@@ -57,7 +56,10 @@ export default function MonthlyPage() {
 
   // Load transactions on mount and year change
   useEffect(() => {
-    fetchTransactions();
+    const timer = setTimeout(() => {
+      fetchTransactions();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchTransactions]);
 
   // Listen to bottom navigation center plus button event
@@ -134,8 +136,9 @@ export default function MonthlyPage() {
         ...prev,
         [monthIdx]: data.summary,
       }));
-    } catch (err: any) {
-      setAiError(err.message || 'Failed to generate AI summary');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setAiError(msg || 'Failed to generate AI summary');
     } finally {
       setGeneratingSummary(false);
     }
@@ -143,8 +146,12 @@ export default function MonthlyPage() {
 
   useEffect(() => {
     if (selectedMonthIndex !== null && !aiSummaries[selectedMonthIndex]) {
-      loadAISummary(selectedMonthIndex);
+      const timer = setTimeout(() => {
+        loadAISummary(selectedMonthIndex);
+      }, 0);
+      return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonthIndex, aiSummaries]);
 
   const renderAiSummary = (text: string) => {
@@ -207,8 +214,20 @@ export default function MonthlyPage() {
                 const income = txs
                   .filter((tx) => tx.kind === 'income')
                   .reduce((sum, tx) => sum + Number(tx.amount), 0);
-                const expense = txs
-                  .filter((tx) => tx.kind === 'expense')
+                const living = txs
+                  .filter((tx) => tx.kind === 'expense' && getTransactionClassification(tx) === 'living')
+                  .reduce((sum, tx) => sum + Number(tx.amount), 0);
+                const dca = txs
+                  .filter((tx) => tx.kind === 'expense' && getTransactionClassification(tx) === 'dca')
+                  .reduce((sum, tx) => sum + Number(tx.amount), 0);
+                const ytdLiving = transactions
+                  .filter((tx) => {
+                    const txDate = new Date(tx.date);
+                    const txMonth = txDate.getMonth();
+                    return tx.kind === 'expense' && 
+                           getTransactionClassification(tx) === 'living' && 
+                           txMonth <= monthIndex;
+                  })
                   .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
                 return (
@@ -216,34 +235,62 @@ export default function MonthlyPage() {
                     type="button"
                     key={monthIndex}
                     onClick={() => setSelectedMonthIndex(monthIndex)}
-                    className="h-[116px] p-3.5 flex flex-col justify-between transition-transform duration-200 hover:scale-[1.02] text-left cursor-pointer border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)] w-full"
+                    className="h-[148px] p-3.5 flex flex-col justify-between transition-transform duration-200 hover:scale-[1.02] text-left cursor-pointer border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary rounded-[18px] shadow-[0_6px_20px_rgba(17,24,39,0.04)] w-full"
                   >
                     <div className="flex items-center justify-between w-full">
                       <h3 className="text-[22px] font-bold text-text-primary capitalize leading-none tracking-tight">{getMonthName(monthIndex)}</h3>
                       <ChevronRight size={16} className="text-text-muted" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-1.5 border-t border-border/10 pt-2 w-full">
-                      <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-2 gap-3 border-t border-border/10 pt-2.5 w-full">
+                      {/* Income */}
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <div className="p-1 rounded-xl bg-income-green/10 text-income-green flex-shrink-0 flex items-center justify-center w-7 h-7">
                           <TrendingUp size={14} />
                         </div>
-                        <div>
-                          <span className="text-[11px] font-semibold text-text-secondary opacity-80 block leading-none mb-1">{t('transaction.income')}</span>
-                          <span className="text-[16px] font-extrabold font-mono tracking-tight leading-none text-income-green">
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-text-muted uppercase block leading-none mb-1">Income</span>
+                          <span className="text-[14px] font-extrabold font-mono tracking-tight leading-none text-income-green truncate block">
                             {formatCurrency(income).replace('THB', '').trim()}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      {/* Living */}
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <div className="p-1 rounded-xl bg-expense-red/10 text-expense-red flex-shrink-0 flex items-center justify-center w-7 h-7">
                           <TrendingDown size={14} />
                         </div>
-                        <div>
-                          <span className="text-[11px] font-semibold text-text-secondary opacity-80 block leading-none mb-1">{t('transaction.outcome')}</span>
-                          <span className="text-[16px] font-extrabold font-mono tracking-tight leading-none text-expense-red">
-                            {formatCurrency(expense).replace('THB', '').trim()}
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-text-muted uppercase block leading-none mb-1">Living</span>
+                          <span className="text-[14px] font-extrabold font-mono tracking-tight leading-none text-expense-red truncate block">
+                            {formatCurrency(living).replace('THB', '').trim()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* DCA */}
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="p-1 rounded-xl bg-cyan-500/10 text-cyan-500 flex-shrink-0 flex items-center justify-center w-7 h-7">
+                          <DollarSign size={14} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-text-muted uppercase block leading-none mb-1">DCA Target</span>
+                          <span className="text-[14px] font-extrabold font-mono tracking-tight leading-none text-cyan-500 truncate block">
+                            {formatCurrency(dca).replace('THB', '').trim()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Cumulative YTD */}
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="p-1 rounded-xl bg-purple-500/10 text-purple-500 flex-shrink-0 flex items-center justify-center w-7 h-7">
+                          <Calendar size={14} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-text-muted uppercase block leading-none mb-1">Cumul YTD</span>
+                          <span className="text-[14px] font-extrabold font-mono tracking-tight leading-none text-purple-500 truncate block">
+                            {formatCurrency(ytdLiving).replace('THB', '').trim()}
                           </span>
                         </div>
                       </div>
@@ -369,7 +416,7 @@ export default function MonthlyPage() {
                           )}
                           {tx.note && (
                             <span className="text-[11px] font-normal italic text-text-muted/80 block truncate mt-0.5 leading-none">
-                              "{tx.note}"
+                              &ldquo;{tx.note}&rdquo;
                             </span>
                           )}
                         </div>
