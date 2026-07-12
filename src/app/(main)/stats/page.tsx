@@ -253,79 +253,57 @@ export default function StatsPage() {
       ) : activeTab === 'stats' ? (
         /* Stats Visuals */
         <div className="flex flex-col gap-6 animate-scale-in">
-          {/* Side-by-Side Account Total Cards */}
+          {/* Side-by-Side Account Total Cards (Editorial Neutral style) */}
           <div className="grid grid-cols-2 gap-3.5 w-full">
-            {/* Total Salary Card (Purple) */}
+            {/* Total Salary Card */}
             <div 
-              className="relative overflow-hidden p-4 rounded-2xl border flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-lg cursor-pointer"
-              style={{ 
-                background: 'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)',
-                borderColor: 'rgba(255, 255, 255, 0.15)',
-              }}
+              className="relative overflow-hidden p-4 rounded-2xl border border-border/60 bg-bg-secondary flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-sm cursor-pointer"
             >
-              {/* Decorative Background Circles */}
-              <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-              <div className="absolute right-6 -top-6 w-12 h-12 rounded-full bg-white/5 pointer-events-none" />
-              
               <div className="flex justify-between items-start">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-extrabold text-purple-200/90 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
                     {language === 'th' ? 'รายรับทั้งหมด' : 'Total Salary'}
                   </span>
-                  <span className="text-[9px] text-purple-200/70 font-semibold tracking-wide">
+                  <span className="text-[9px] text-text-muted font-medium tracking-wide">
                     Bank Account ********1965
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <ArrowUpRight size={14} className="text-white/80" />
-                  <div className="w-5 h-4 rounded-sm bg-white/20 border border-white/30 flex flex-col justify-between p-0.5 overflow-hidden">
-                    <div className="w-1.5 h-1 bg-white/40 rounded-sm" />
-                    <div className="w-3 h-[0.5px] bg-white/30" />
-                  </div>
+                <div className="flex items-center gap-1.5 text-income-green bg-income-green/10 px-2 py-0.5 rounded-full text-[9px] font-bold">
+                  <ArrowUpRight size={12} />
+                  <span>INCOME</span>
                 </div>
               </div>
               
               <div className="mt-auto">
-                <span className="text-[10px] text-purple-200/60 block font-medium">Total Balance</span>
-                <span className="text-lg font-black text-white tracking-tight">
+                <span className="text-[10px] text-text-muted block font-medium">Total Balance</span>
+                <span className="text-lg font-extrabold text-income-green tracking-tight">
                   {formatCurrency(totalIncome)}
                 </span>
               </div>
             </div>
 
-            {/* Total Expense Card (Orange/Coral) */}
+            {/* Total Expense Card */}
             <div 
-              className="relative overflow-hidden p-4 rounded-2xl border flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-lg cursor-pointer"
-              style={{ 
-                background: 'linear-gradient(135deg, #FF6B4A 0%, #D93B15 100%)',
-                borderColor: 'rgba(255, 255, 255, 0.15)',
-              }}
+              className="relative overflow-hidden p-4 rounded-2xl border border-border/60 bg-bg-secondary flex flex-col justify-between h-32 transition-transform duration-200 hover:scale-[1.02] shadow-sm cursor-pointer"
             >
-              {/* Decorative Background Circles */}
-              <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-              <div className="absolute right-6 -top-6 w-12 h-12 rounded-full bg-white/5 pointer-events-none" />
-
               <div className="flex justify-between items-start">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-extrabold text-orange-200/90 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
                     {language === 'th' ? 'รายจ่ายทั้งหมด' : 'Total Expense'}
                   </span>
-                  <span className="text-[9px] text-orange-200/70 font-semibold tracking-wide">
+                  <span className="text-[9px] text-text-muted font-medium tracking-wide">
                     Bank Account ********1965
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <ArrowDownLeft size={14} className="text-white/80" />
-                  <div className="w-5 h-4 rounded-sm bg-white/20 border border-white/30 flex flex-col justify-between p-0.5 overflow-hidden">
-                    <div className="w-1.5 h-1 bg-white/40 rounded-sm" />
-                    <div className="w-3 h-[0.5px] bg-white/30" />
-                  </div>
+                <div className="flex items-center gap-1.5 text-expense-red bg-expense-red/10 px-2 py-0.5 rounded-full text-[9px] font-bold">
+                  <ArrowDownLeft size={12} />
+                  <span>EXPENSE</span>
                 </div>
               </div>
 
               <div className="mt-auto">
-                <span className="text-[10px] text-orange-200/60 block font-medium">Total Spent</span>
-                <span className="text-lg font-black text-white tracking-tight">
+                <span className="text-[10px] text-text-muted block font-medium">Total Spent</span>
+                <span className="text-lg font-extrabold text-expense-red tracking-tight">
                   {formatCurrency(totalExpense)}
                 </span>
               </div>
@@ -339,8 +317,8 @@ export default function StatsPage() {
               style={{ 
                 background: 'var(--color-bg-secondary)', 
                 border: '1px solid var(--color-border)', 
-                borderRadius: 20, 
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' 
+                borderRadius: 16, 
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
               }}
             >
               <DonutChart
@@ -351,11 +329,11 @@ export default function StatsPage() {
             </div>
           ) : (
             <div 
-              className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full" 
+              className="p-8 text-center text-text-secondary flex flex-col items-center justify-center gap-3 w-full animate-fade-in" 
               style={{ 
                 background: 'var(--color-bg-secondary)', 
                 border: '1px solid var(--color-border)', 
-                borderRadius: 20 
+                borderRadius: 16 
               }}
             >
               <BarChart3 size={32} className="text-accent-purple" />
@@ -379,8 +357,8 @@ export default function StatsPage() {
             style={{ 
               background: 'var(--color-bg-secondary)', 
               border: '1px solid var(--color-border)', 
-              borderRadius: 20, 
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' 
+              borderRadius: 16, 
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
             }}
           >
             <TrendChart transactions={filteredTransactions} />
@@ -392,8 +370,8 @@ export default function StatsPage() {
             style={{ 
               background: 'var(--color-bg-secondary)', 
               border: '1px solid var(--color-border)', 
-              borderRadius: 20, 
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)' 
+              borderRadius: 16, 
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
             }}
           >
             <LineChart transactions={filteredTransactions} />

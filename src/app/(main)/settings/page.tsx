@@ -172,6 +172,19 @@ export default function SettingsPage() {
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [username, setUsername] = useState('User');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const name = user.email ? user.email.split('@')[0] : 'User';
+        setUsername(name);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Listen to bottom navigation center plus button event
   useEffect(() => {
@@ -300,40 +313,41 @@ export default function SettingsPage() {
         </h1>
       </div>
 
-      {/* ═══════════ Account Section ═══════════ */}
+      {/* ═══════════ Account Section (Editorial Minimal style) ═══════════ */}
       <div>
         <div
           style={{
-            borderRadius: 18,
+            borderRadius: 16,
             padding: '20px 18px',
-            background: `linear-gradient(135deg, ${C.bgSecondary}, ${C.bgTertiary}80)`,
-            border: `1px solid ${C.border}80`,
+            background: C.bgSecondary,
+            border: `1px solid ${C.border}`,
             display: 'flex',
             alignItems: 'center',
             gap: 14,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
           }}
         >
-          {/* Gradient avatar */}
+          {/* Neutral avatar */}
           <div
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: 16,
-              background: `linear-gradient(135deg, ${C.accent}, #EC4899, ${C.accentLight})`,
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: C.bgTertiary,
+              border: `1px solid ${C.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              boxShadow: `0 4px 24px ${C.accent}40`,
             }}
           >
-            <User size={26} color="#fff" />
+            <User size={24} color={C.accent} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p
               style={{
                 fontSize: 11,
-                fontWeight: 600,
+                fontWeight: 700,
                 color: C.textMuted,
                 margin: 0,
                 textTransform: 'uppercase',
@@ -350,8 +364,13 @@ export default function SettingsPage() {
                 margin: '4px 0 0',
               }}
             >
-              Active Session
+              {username}
             </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', background: 'rgba(16,185,129,0.1)', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Secure Vault Active
+              </span>
+            </div>
           </div>
           {/* Status dot */}
           <div
@@ -360,7 +379,6 @@ export default function SettingsPage() {
               height: 10,
               borderRadius: '50%',
               background: '#22C55E',
-              boxShadow: '0 0 8px rgba(34,197,94,0.5)',
               flexShrink: 0,
             }}
           />

@@ -58,8 +58,8 @@ export default function TransactionList({
             style={{ 
               background: 'var(--color-bg-secondary)', 
               border: '1px solid var(--color-border)', 
-              borderRadius: 20, 
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)' 
+              borderRadius: 16, 
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
             }}
           >
             {/* Group Header */}

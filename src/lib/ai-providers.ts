@@ -626,16 +626,14 @@ export async function generateMonthlySummary(
     )
     .join('\n');
 
-  const prompt = `You are a financial advisor assistant. Analyze the user's transaction data for this month and provide a concise, friendly summary and financial insights in ${
+  const prompt = `You are a professional, grounded financial advisor assistant. Analyze the user's transactions for this month and provide a highly concise, trustworthy monthly summary in ${
     language === 'th' ? 'Thai' : 'English'
   }.
-Do NOT list all transactions. Instead, analyze:
-1. Total expenses vs total income.
-2. Spending patterns (e.g. which categories they spent the most on, unexpected high costs, etc.).
-3. Primary payment methods used (cash, bank transfer, credit card, etc.) and what it suggests about their cash flow.
-4. Actionable tips to save money next month.
+Format the response EXACTLY with these two sections:
+1. **Explanation**: One concise, data-backed explanation of their main spending driver or pattern this month.
+2. **Recommendation**: One clear, actionable, and grounded recommendation to save money or optimize their budget.
 
-Keep the summary under 150 words. Do not use complex markdown formatting or HTML. Use simple bullet points if needed.
+Keep the entire output under 100 words. Do not use conversational filler, emojis, or generic advice. Be direct and bank-like.
 
 Here are the transactions:
 ${txListText}`;

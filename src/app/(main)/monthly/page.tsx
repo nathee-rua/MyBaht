@@ -327,10 +327,7 @@ export default function MonthlyPage() {
                   return (
                     <div
                       key={tx.id}
-                      className="p-3.5 flex items-center justify-between border border-border/40 bg-bg-secondary/40 shadow-sm rounded-2xl border-l-4 animate-scale-in"
-                      style={{
-                        borderLeftColor: isIncome ? 'var(--color-income-green)' : 'var(--color-expense-red)',
-                      }}
+                      className="p-3.5 flex items-center justify-between border border-border/40 bg-bg-secondary/40 shadow-sm rounded-2xl animate-scale-in"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`p-2 rounded-xl flex-shrink-0 border ${getCategoryColor(tx.category)}`}>

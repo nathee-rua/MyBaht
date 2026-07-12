@@ -402,86 +402,55 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Credit Card / Accounts Carousel widget */}
-        <div className="relative mt-2 mb-6 select-none h-[180px] w-full flex items-center overflow-visible">
-          {/* Peeking card (next card in array) */}
+        {/* Simplified Bank-Like Balance Card */}
+        <div className="mt-2 mb-6 select-none w-full">
           <div 
-            className="absolute right-0 w-[92%] h-[166px] rounded-none opacity-40 -z-10 cursor-pointer transition-all duration-500 hover:opacity-60"
+            className="w-full h-[166px] rounded-2xl py-5 px-6 relative overflow-hidden flex flex-col justify-between border border-border/60 transition-all duration-300 shadow-md"
             style={{ 
-              background: nextAccount.gradient,
-              transform: 'translateX(6%) scale(0.93) rotate(3deg) skewY(1deg)',
-              transformOrigin: 'right center',
-              boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
-              border: '2px solid rgba(255,255,255,0.15)'
-            }}
-            onClick={() => setSelectedAccountIndex(nextAccountIndex)}
-          >
-            {/* Subtle card text peeking */}
-            <div className="absolute inset-0 bg-black/5 flex flex-col justify-between p-5 text-white/40">
-              <div className="flex justify-between items-start">
-                <span className="text-[9px] font-bold uppercase tracking-wider">
-                  {nextAccount.name}
-                </span>
-              </div>
-              <span className="text-[12px] font-mono tracking-widest">
-                {nextAccount.cardNumber}
-              </span>
-            </div>
-          </div>
-          
-          {/* Active Card */}
-          <div 
-            className="w-[90%] mx-auto h-[176px] rounded-none py-5 px-6 relative overflow-hidden flex flex-col justify-between border-2 border-white/20 transition-all duration-500 shadow-[0_12px_35px_rgba(0,0,0,0.45)]"
-            style={{ 
-              background: activeAccount.gradient,
+              background: 'linear-gradient(135deg, #111827 0%, #1F2937 100%)', // Premium dark slate card for both light and dark themes
             }}
           >
-            {/* Glowing pattern orbs */}
-            <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-            <div className="absolute -left-10 -bottom-10 w-44 h-44 rounded-full bg-white/5 blur-3xl pointer-events-none" />
-
-            {/* Top row: Account Name & AI Ready Badge + Gold Chip */}
+            {/* Top row: Account Name & AI Ready Badge */}
             <div className="flex justify-between items-center w-full z-10">
-              <span className="text-[10px] text-white/70 uppercase tracking-widest font-black">
+              <span className="text-[11px] text-gray-400 uppercase tracking-wider font-bold">
                 {activeAccount.name === 'All Accounts' ? t('card.availableBalance') : `${activeAccount.name}`}
               </span>
               <div className="flex items-center gap-2">
                 {aiReady && (
-                  <div className="flex items-center gap-1 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[9px] font-black text-emerald-300 select-none rounded-none shadow-sm animate-pulse">
-                    <Sparkles size={10} className="fill-emerald-300/20" />
+                  <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[9px] font-extrabold text-emerald-400 rounded-full select-none">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                     <span>AI READY</span>
                   </div>
                 )}
                 {activeAccount.iconType === 'cash' ? (
-                  <span className="text-[10px] font-black text-white/90 bg-white/10 px-2 py-0.5 rounded-none border border-white/10">{t('card.cash')}</span>
+                  <span className="text-[10px] font-bold text-gray-300 bg-white/10 px-2 py-0.5 rounded-md border border-white/10">{t('card.cash')}</span>
                 ) : (
-                  <div className="w-9 h-6.5 rounded-none bg-yellow-400/25 border border-yellow-400/40 flex flex-col gap-0.5 p-1 justify-center relative overflow-hidden">
-                    <div className="w-full h-px bg-yellow-400/30" />
-                    <div className="w-full h-px bg-yellow-400/30" />
-                    <div className="w-[60%] h-full border-r border-yellow-400/30 absolute left-0 top-0" />
-                    <div className="w-[30%] h-full border-l border-yellow-400/30 absolute right-0 top-0" />
+                  <div className="w-8 h-5.5 rounded bg-amber-400/20 border border-amber-400/30 flex flex-col gap-0.5 p-1 justify-center relative overflow-hidden">
+                    <div className="w-full h-px bg-amber-400/40" />
+                    <div className="w-full h-px bg-amber-400/40" />
+                    <div className="w-[60%] h-full border-r border-amber-400/40 absolute left-0 top-0" />
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Center Section: Centered balance with large text */}
+            {/* Center Section: Centered balance with large editorial text */}
             <div className="flex flex-col items-center justify-center my-auto z-10">
-              <span className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-baseline justify-center gap-1.5">
+              <span className="text-3xl md:text-4xl font-extrabold text-white tracking-tight flex items-baseline justify-center gap-1.5">
+                <span className="text-sm font-semibold text-gray-400">฿</span>
                 <span>{formatCurrency(getAccountBalance(activeAccount.method)).replace('THB', '').trim()}</span>
-                <span className="text-sm font-bold opacity-80">THB</span>
               </span>
             </div>
 
             {/* Bottom Section: Card holder & card number */}
-            <div className="flex justify-between items-end w-full z-10 text-[10px]">
+            <div className="flex justify-between items-end w-full z-10 text-[11px] text-gray-400">
               <div className="flex flex-col">
-                <span className="text-[7px] text-white/50 uppercase tracking-wider font-semibold">{t('card.cardHolder')}</span>
+                <span className="text-[8px] text-gray-500 uppercase tracking-wider font-semibold">{t('card.cardHolder')}</span>
                 <span className="font-bold text-white tracking-wide uppercase mt-0.5">
                   {username}
                 </span>
               </div>
-              <div className="font-mono tracking-[0.15em] text-white/85 text-right">
+              <div className="font-mono tracking-wider text-right text-gray-300">
                 {activeAccount.cardNumber}
               </div>
             </div>
@@ -503,23 +472,18 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Quick Action Outline Pills */}
-        <div className="px-4 grid grid-cols-3 gap-2.5 mb-6">
+        {/* Quick Actions (Minimalist Editorial Rounded style) */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <button
             type="button"
             onClick={() => {
               setEditingTx(null);
               setShowAddDialog(true);
             }}
-            className="py-3.5 px-2 rounded-2xl border text-xs font-black transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-            style={{
-              background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-primary)',
-            }}
+            className="py-3 px-2 rounded-2xl border border-border/60 text-xs font-bold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-2 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md">
-              <Plus size={20} strokeWidth={2.5} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple">
+              <Plus size={18} strokeWidth={2.5} />
             </div>
             <span>{t('action.addExpense')}</span>
           </button>
@@ -527,15 +491,10 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => setShowScanDialog(true)}
-            className="py-3.5 px-2 rounded-2xl border text-xs font-black transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-            style={{
-              background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-primary)',
-            }}
+            className="py-3 px-2 rounded-2xl border border-border/60 text-xs font-bold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-2 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-md">
-              <Camera size={18} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple">
+              <Camera size={16} />
             </div>
             <span>{t('action.scanSlip')}</span>
           </button>
@@ -543,15 +502,10 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => setShowPasteDialog(true)}
-            className="py-3.5 px-2 rounded-2xl border text-xs font-black transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-            style={{
-              background: 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-primary)',
-            }}
+            className="py-3 px-2 rounded-2xl border border-border/60 text-xs font-bold transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-2 cursor-pointer shadow-sm hover:border-accent-purple/50 bg-bg-secondary text-text-primary"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-tr from-purple-500 to-indigo-500 text-white shadow-md">
-              <Sparkles size={18} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-accent-purple/10 text-accent-purple">
+              <Sparkles size={16} />
             </div>
             <span>{t('action.pasteText')}</span>
           </button>
@@ -574,8 +528,8 @@ export default function DashboardPage() {
             style={{ 
               background: 'var(--color-bg-secondary)', 
               border: '1px solid var(--color-border)', 
-              borderRadius: 20, 
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' 
+              borderRadius: 16, 
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)' 
             }}
           >
           <h3 className="text-xs font-black text-text-primary uppercase tracking-wider mb-4 flex items-center justify-between">
