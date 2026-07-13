@@ -1394,36 +1394,36 @@ export default function StatsPage() {
           {/* Investment Summary Cards */}
           <div className="grid grid-cols-3 gap-3 w-full">
             {/* Total Buy Card */}
-            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+            <div className="relative p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider leading-normal pt-0.5">
                 {language === 'th' ? 'ซื้อ (DCA)' : 'Buy (DCA)'}
               </span>
               <div className="flex-1 flex items-center">
-                <span className="text-lg font-black text-text-primary tracking-tight">
+                <span className="text-lg font-black text-text-primary tracking-normal">
                   {formatCurrency(investmentSummary.totalBuy)}
                 </span>
               </div>
             </div>
 
             {/* Total Sell Card */}
-            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+            <div className="relative p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider leading-normal pt-0.5">
                 {language === 'th' ? 'ขาย' : 'Sell'}
               </span>
               <div className="flex-1 flex items-center">
-                <span className="text-lg font-black text-accent-purple tracking-tight">
+                <span className="text-lg font-black text-accent-purple tracking-normal">
                   {formatCurrency(investmentSummary.totalSell)}
                 </span>
               </div>
             </div>
 
             {/* Total Dividend Card */}
-            <div className="relative overflow-hidden p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+            <div className="relative p-3.5 rounded-[18px] border border-[#111827]/[0.08] dark:border-border/40 bg-bg-secondary flex flex-col h-[100px] shadow-[0_6px_20px_rgba(17,24,39,0.04)]">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider leading-normal pt-0.5">
                 {language === 'th' ? 'ปันผล' : 'Dividend'}
               </span>
               <div className="flex-1 flex items-center">
-                <span className="text-lg font-black text-income-green tracking-tight">
+                <span className="text-lg font-black text-income-green tracking-normal">
                   {formatCurrency(investmentSummary.totalDividend)}
                 </span>
               </div>

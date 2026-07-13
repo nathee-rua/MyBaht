@@ -75,6 +75,12 @@ export interface SlipAnalysisResult {
   note?: string;
   date: string;
   payment_method?: PaymentMethod;
+  is_investment?: boolean;
+  investment_symbol?: string | null;
+  investment_type?: 'buy' | 'sell' | 'dividend' | null;
+  investment_asset_type?: 'stocks' | 'crypto' | 'mutual_funds' | 'gold' | 'other' | null;
+  investment_price?: number | null;
+  investment_units?: number | null;
 }
 
 export interface AIProviderConfig {

@@ -140,7 +140,25 @@ export function formatTransactionForLine(tx: {
   note?: string;
   date: string;
   payment_method?: string;
+  is_investment?: boolean;
+  investment_symbol?: string | null;
+  investment_type?: string | null;
+  investment_price?: number | null;
+  investment_units?: number | null;
 }): string {
+  if (tx.is_investment && tx.investment_symbol) {
+    const typeLabel = tx.investment_type === 'buy' ? 'ซื้อ' : tx.investment_type === 'sell' ? 'ขาย' : 'ปันผล';
+    let message = `📈 รายการลงทุนที่ตรวจพบ (Detected Investment)\n\n`;
+    message += `💰 ยอดเงิน: ฿${tx.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}\n`;
+    message += `🔣 สัญลักษณ์: ${tx.investment_symbol}\n`;
+    message += `🔄 ประเภท: ${typeLabel} (${tx.investment_type})\n`;
+    if (tx.investment_price) message += `🏷️ ราคา/หน่วย: ฿${tx.investment_price.toLocaleString('th-TH', { minimumFractionDigits: 4 })}\n`;
+    if (tx.investment_units) message += `📊 จำนวนหน่วย: ${tx.investment_units.toLocaleString('th-TH', { minimumFractionDigits: 4 })}\n`;
+    if (tx.note) message += `📝 โน้ต: ${tx.note}\n`;
+    message += `📅 วันที่: ${tx.date}\n`;
+    return message;
+  }
+
   let message = `📝 รายการที่ตรวจพบ (Detected Transaction)\n\n`;
   message += `💰 ยอดเงิน: ฿${tx.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}\n`;
   message += `🏷️ หมวดหมู่: ${tx.category}\n`;

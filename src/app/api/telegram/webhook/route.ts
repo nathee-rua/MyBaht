@@ -84,6 +84,28 @@ function createSafeCallbackData(
   return `save:${amount}:${category}:${shortPm}:${dateStr}:${finalMerchant}:${finalNote}`;
 }
 
+function createSafeInvestmentCallbackData(
+  amount: number,
+  type: string,
+  symbol: string,
+  date: string,
+  price?: number | null,
+  units?: number | null,
+  assetType?: string | null
+): string {
+  const cleanSymbol = symbol.replace(/:/g, ' ').trim().toUpperCase();
+  const dateStr = date.replace(/-/g, '');
+  const shortAssetType = assetType === 'stocks' ? 'st'
+    : assetType === 'crypto' ? 'cr'
+    : assetType === 'mutual_funds' ? 'mf'
+    : assetType === 'gold' ? 'go'
+    : 'ot';
+  const cleanPrice = price ? price.toString() : 'none';
+  const cleanUnits = units ? units.toString() : 'none';
+
+  return `sv_inv:${amount}:${type}:${cleanSymbol}:${dateStr}:${cleanPrice}:${cleanUnits}:${shortAssetType}`;
+}
+
 export async function POST(req: Request) {
   try {
     const secretToken = req.headers.get('x-telegram-bot-api-secret-token');
@@ -148,6 +170,98 @@ export async function POST(req: Request) {
           // Edit message to confirm
           await sendTelegramMessage(chatId, '✅ บันทึกรายการค่าใช้จ่ายเรียบร้อยแล้ว!');
           // Answer callback
+          await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ callback_query_id: callbackQuery.id, text: 'บันทึกสำเร็จ' }),
+          });
+        }
+      } else if (data.startsWith('sv_inv:')) {
+        const parts = data.split(':');
+        const amount = parseFloat(parts[1]);
+        const type = parts[2] as 'buy' | 'sell' | 'dividend';
+        const symbol = parts[3].toUpperCase();
+        const rawDate = parts[4];
+        const formattedDate = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+        const price = parts[5] === 'none' ? null : parseFloat(parts[5]);
+        const units = parts[6] === 'none' ? null : parseFloat(parts[6]);
+        const shortAssetType = parts[7];
+
+        const assetTypes: Record<string, 'stocks' | 'crypto' | 'mutual_funds' | 'gold' | 'other'> = {
+          st: 'stocks',
+          cr: 'crypto',
+          mf: 'mutual_funds',
+          go: 'gold',
+          ot: 'other'
+        };
+        const assetType = assetTypes[shortAssetType] || 'stocks';
+
+        const { data: settings, error: settingsError } = await supabaseAdmin
+          .from('user_settings')
+          .select('user_id')
+          .eq('telegram_chat_id', chatId.toString())
+          .single();
+
+        if (settingsError || !settings) {
+          console.error('Error finding linked user for Telegram chatId:', chatId, settingsError);
+          await sendTelegramMessage(chatId, '❌ บัญชีของคุณยังไม่ได้เชื่อมต่อ หรือระบบหาบัญชีไม่พบ');
+          return NextResponse.json({ ok: true });
+        }
+
+        const userId = settings.user_id;
+
+        // Look up if the asset already exists for this user in investment_assets
+        let { data: asset, error: assetError } = await supabaseAdmin
+          .from('investment_assets')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('symbol', symbol)
+          .maybeSingle();
+
+        if (assetError) {
+          console.error('Error querying asset:', assetError);
+          await sendTelegramMessage(chatId, '❌ เกิดข้อผิดพลาดในการตรวจสอบสินทรัพย์');
+          return NextResponse.json({ ok: true });
+        }
+
+        let assetId = asset?.id;
+        if (!assetId) {
+          const { data: newAsset, error: createAssetError } = await supabaseAdmin
+            .from('investment_assets')
+            .insert({
+              user_id: userId,
+              symbol,
+              name: symbol,
+              type: assetType
+            })
+            .select('id')
+            .single();
+
+          if (createAssetError || !newAsset) {
+            console.error('Error creating asset:', createAssetError);
+            await sendTelegramMessage(chatId, '❌ ไม่สามารถลงทะเบียนสินทรัพย์ใหม่ได้');
+            return NextResponse.json({ ok: true });
+          }
+          assetId = newAsset.id;
+        }
+
+        const { error: recordError } = await supabaseAdmin
+          .from('investment_records')
+          .insert({
+            user_id: userId,
+            asset_id: assetId,
+            date: formattedDate,
+            type: type,
+            amount: amount,
+            price: price,
+            units: units
+          });
+
+        if (recordError) {
+          console.error('Error inserting investment record:', recordError);
+          await sendTelegramMessage(chatId, '❌ ไม่สามารถบันทึกรายการลงทุนได้ กรุณาลองใหม่อีกครั้ง');
+        } else {
+          await sendTelegramMessage(chatId, '✅ บันทึกรายการลงทุนเรียบร้อยแล้ว!');
           await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -257,20 +371,36 @@ export async function POST(req: Request) {
           note: parsed.note,
           date: parsed.date,
           payment_method: parsed.payment_method,
+          is_investment: parsed.is_investment,
+          investment_symbol: parsed.investment_symbol,
+          investment_type: parsed.investment_type,
+          investment_price: parsed.investment_price,
+          investment_units: parsed.investment_units,
         });
 
         // Inline keyboard for Save/Cancel actions
-        const callbackData = createSafeCallbackData(
-          parsed.amount,
-          parsed.category,
-          parsed.payment_method || 'cash',
-          parsed.date,
-          parsed.merchant,
-          parsed.note
-        );
+        const callbackData = parsed.is_investment && parsed.investment_symbol
+          ? createSafeInvestmentCallbackData(
+              parsed.amount,
+              parsed.investment_type || 'buy',
+              parsed.investment_symbol,
+              parsed.date,
+              parsed.investment_price,
+              parsed.investment_units,
+              parsed.investment_asset_type
+            )
+          : createSafeCallbackData(
+              parsed.amount,
+              parsed.category,
+              parsed.payment_method || 'cash',
+              parsed.date,
+              parsed.merchant,
+              parsed.note
+            );
+
         await sendTelegramMessageWithKeyboard(chatId, formattedText, [
           [
-            { text: '✅ บันทึกรายการ (Save)', callback_data: callbackData },
+            { text: parsed.is_investment ? '📈 บันทึกการลงทุน (Save)' : '✅ บันทึกรายการ (Save)', callback_data: callbackData },
             { text: '❌ ยกเลิก (Cancel)', callback_data: 'cancel' },
           ],
         ]);
@@ -303,20 +433,36 @@ export async function POST(req: Request) {
           note: parsed.note,
           date: parsed.date,
           payment_method: parsed.payment_method,
+          is_investment: parsed.is_investment,
+          investment_symbol: parsed.investment_symbol,
+          investment_type: parsed.investment_type,
+          investment_price: parsed.investment_price,
+          investment_units: parsed.investment_units,
         });
 
         // Inline keyboard for Save/Cancel actions
-        const callbackData = createSafeCallbackData(
-          parsed.amount,
-          parsed.category,
-          parsed.payment_method || 'cash',
-          parsed.date,
-          parsed.merchant,
-          parsed.note
-        );
+        const callbackData = parsed.is_investment && parsed.investment_symbol
+          ? createSafeInvestmentCallbackData(
+              parsed.amount,
+              parsed.investment_type || 'buy',
+              parsed.investment_symbol,
+              parsed.date,
+              parsed.investment_price,
+              parsed.investment_units,
+              parsed.investment_asset_type
+            )
+          : createSafeCallbackData(
+              parsed.amount,
+              parsed.category,
+              parsed.payment_method || 'cash',
+              parsed.date,
+              parsed.merchant,
+              parsed.note
+            );
+
         await sendTelegramMessageWithKeyboard(chatId, formattedText, [
           [
-            { text: '✅ บันทึกรายการ (Save)', callback_data: callbackData },
+            { text: parsed.is_investment ? '📈 บันทึกการลงทุน (Save)' : '✅ บันทึกรายการ (Save)', callback_data: callbackData },
             { text: '❌ ยกเลิก (Cancel)', callback_data: 'cancel' },
           ],
         ]);

@@ -205,7 +205,13 @@ function getSlipAnalysisPrompt(todayDate: string): string {
   "merchant": "<store/merchant name if visible>",
   "note": "<brief description of the transaction>",
   "date": "<date in YYYY-MM-DD format, use today's date (${todayDate}) if not visible>",
-  "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>"
+  "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>",
+  "is_investment": <boolean - true if this transaction is buying, selling, or receiving dividends for stocks, mutual funds, gold, or cryptocurrency>,
+  "investment_symbol": "<the symbol or name of the stock, fund, gold, or crypto if this is an investment, e.g. SCB, BTC, AAPL, K-GOLD, SCBDV. Use upper case if it is a symbol. Null otherwise>",
+  "investment_type": "<one of: buy, sell, dividend if this is an investment. Null otherwise>",
+  "investment_asset_type": "<one of: stocks, crypto, mutual_funds, gold, other if this is an investment. Null otherwise>",
+  "investment_price": <number - the unit price if visible. Null otherwise>,
+  "investment_units": <number - the number of units if visible. Null otherwise>
 }
 
 Rules:
@@ -218,6 +224,12 @@ Rules:
   * Look for bank logos (K-Bank, SCB, Krungthai, Bangkok Bank), QR codes, mobile banking transaction details, or terms like "โอนเงิน", "เงินออก" -> use "bank".
   * Look for wallet terms (TrueMoney, Rabbit Line Pay, ShopeePay) -> use "e_wallet".
   * If no card, bank, or wallet identifiers are visible, default to "cash".
+- If it is a stock, mutual fund, gold, or crypto trade/dividend:
+  * Set "is_investment" to true.
+  * Extract the stock symbol or fund name into "investment_symbol" (e.g. SCB, AAPL, BTC, SCBDV).
+  * Identify "investment_type" as "buy" (buying/investing), "sell" (selling/redeeming), or "dividend" (receiving dividend).
+  * Identify "investment_asset_type" as "stocks", "crypto", "mutual_funds", "gold", or "other".
+  * Extract "investment_price" and "investment_units" if they are clearly visible on the slip.
 - Return ONLY the JSON object, no markdown, no explanation`;
 }
 
@@ -268,6 +280,12 @@ export async function analyzeSlip(
       note: parsed.note || '',
       date: normalizeDate(parsed.date, todayDate),
       payment_method: parsed.payment_method || 'cash',
+      is_investment: parsed.is_investment || false,
+      investment_symbol: parsed.investment_symbol || null,
+      investment_type: parsed.investment_type || null,
+      investment_asset_type: parsed.investment_asset_type || null,
+      investment_price: parsed.investment_price ? Number(parsed.investment_price) : null,
+      investment_units: parsed.investment_units ? Number(parsed.investment_units) : null,
     };
   } catch (e) {
     console.error('[AI Parser Error] Failed parsing JSON from raw response:', result);
@@ -286,7 +304,13 @@ function getTextAnalysisPrompt(todayDate: string): string {
   "merchant": "<store/merchant name if found in text>",
   "note": "<brief description of the transaction>",
   "date": "<date in YYYY-MM-DD format, use today's date (${todayDate}) if not visible/parseable>",
-  "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>"
+  "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>",
+  "is_investment": <boolean - true if this transaction is buying, selling, or receiving dividends for stocks, mutual funds, gold, or cryptocurrency>,
+  "investment_symbol": "<the symbol or name of the stock, fund, gold, or crypto if this is an investment, e.g. SCB, BTC, AAPL, K-GOLD, SCBDV. Use upper case if it is a symbol. Null otherwise>",
+  "investment_type": "<one of: buy, sell, dividend if this is an investment. Null otherwise>",
+  "investment_asset_type": "<one of: stocks, crypto, mutual_funds, gold, other if this is an investment. Null otherwise>",
+  "investment_price": <number - the unit price if visible. Null otherwise>,
+  "investment_units": <number - the number of units if visible. Null otherwise>
 }
 
 Rules:
@@ -299,6 +323,12 @@ Rules:
   * If the text mentions "โอนเงิน", "เงินออก", "K-Plus", "SCB Easy", "Krungthai", "PromptPay", "โอนสำเร็จ" -> use "bank".
   * If the text mentions "TrueMoney", "TMN", "Wallet", "Rabbit" -> use "e_wallet".
   * Otherwise, predict based on context or use "cash".
+- If it is a stock, mutual fund, gold, or crypto trade/dividend:
+  * Set "is_investment" to true.
+  * Extract the stock symbol or fund name into "investment_symbol" (e.g. SCB, AAPL, BTC, SCBDV).
+  * Identify "investment_type" as "buy" (buying/investing), "sell" (selling/redeeming), or "dividend" (receiving dividend).
+  * Identify "investment_asset_type" as "stocks", "crypto", "mutual_funds", "gold", or "other".
+  * Extract "investment_price" and "investment_units" if they are clearly visible in the text.
 - Return ONLY the JSON object, no markdown code blocks, no explanation.`;
 }
 
@@ -332,6 +362,12 @@ export async function analyzeText(
       note: parsed.note || '',
       date: normalizeDate(parsed.date, todayDate),
       payment_method: parsed.payment_method || 'cash',
+      is_investment: parsed.is_investment || false,
+      investment_symbol: parsed.investment_symbol || null,
+      investment_type: parsed.investment_type || null,
+      investment_asset_type: parsed.investment_asset_type || null,
+      investment_price: parsed.investment_price ? Number(parsed.investment_price) : null,
+      investment_units: parsed.investment_units ? Number(parsed.investment_units) : null,
     };
   } catch (e) {
     console.error('[AI Parser Error] Failed parsing JSON from text response:', result);

@@ -77,7 +77,25 @@ export function formatTransactionForTelegram(tx: {
   note?: string;
   date: string;
   payment_method?: string;
+  is_investment?: boolean;
+  investment_symbol?: string | null;
+  investment_type?: string | null;
+  investment_price?: number | null;
+  investment_units?: number | null;
 }): string {
+  if (tx.is_investment && tx.investment_symbol) {
+    const typeLabel = tx.investment_type === 'buy' ? 'ซื้อ' : tx.investment_type === 'sell' ? 'ขาย' : 'ปันผล';
+    let message = `<b>📈 รายการลงทุนที่ตรวจพบ (Detected Investment)</b>\n\n`;
+    message += `💰 <b>ยอดเงิน (Amount):</b> ฿${tx.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}\n`;
+    message += `🔣 <b>สัญลักษณ์ (Symbol):</b> ${tx.investment_symbol}\n`;
+    message += `🔄 <b>ประเภท (Type):</b> ${typeLabel} (${tx.investment_type})\n`;
+    if (tx.investment_price) message += `🏷️ <b>ราคา/หน่วย (Price):</b> ฿${tx.investment_price.toLocaleString('th-TH', { minimumFractionDigits: 4 })}\n`;
+    if (tx.investment_units) message += `📊 <b>จำนวนหน่วย (Units):</b> ${tx.investment_units.toLocaleString('th-TH', { minimumFractionDigits: 4 })}\n`;
+    if (tx.note) message += `📝 <b>โน้ต (Note):</b> ${tx.note}\n`;
+    message += `📅 <b>วันที่ (Date):</b> ${tx.date}\n`;
+    return message;
+  }
+
   let message = `<b>📝 รายการที่ตรวจพบ (Detected Transaction)</b>\n\n`;
   message += `💰 <b>ยอดเงิน (Amount):</b> ฿${tx.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}\n`;
   message += `🏷️ <b>หมวดหมู่ (Category):</b> ${tx.category}\n`;
