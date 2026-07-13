@@ -12,7 +12,6 @@ import {
   deleteInvestmentAsset,
   getInvestmentRecords,
   createInvestmentRecord,
-  updateInvestmentRecord,
   deleteInvestmentRecord
 } from '@/lib/expenses';
 import type { Transaction, InvestmentReminder, InvestmentRecord, InvestmentDbAsset, InvestmentDbRecord } from '@/types';
@@ -259,9 +258,15 @@ export default function StatsPage() {
   useEffect(() => {
     let isMounted = true;
     if (activeTab === 'investment') {
-      fetchInvestmentData().then(() => {
-        if (!isMounted) return;
-      });
+      const timer = setTimeout(() => {
+        fetchInvestmentData().then(() => {
+          if (!isMounted) return;
+        });
+      }, 0);
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
     }
     return () => {
       isMounted = false;
@@ -1497,7 +1502,7 @@ export default function StatsPage() {
                 {recordAssetSearch && !selectedAssetId && !exactAssetMatch && (
                   <div className="p-3 bg-accent-purple/5 border border-accent-purple/20 rounded-xl flex flex-col gap-2 animate-scale-in">
                     <div className="text-[10px] font-extrabold text-accent-purple">
-                      ✨ {language === 'th' ? 'ลงทะเบียนสินทรัพย์ใหม่' : 'REGISTER NEW ASSET'} "{recordAssetSearch.toUpperCase()}"
+                      ✨ {language === 'th' ? 'ลงทะเบียนสินทรัพย์ใหม่' : 'REGISTER NEW ASSET'} &ldquo;{recordAssetSearch.toUpperCase()}&rdquo;
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1">

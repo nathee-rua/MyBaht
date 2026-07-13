@@ -64,6 +64,17 @@ async function processLineEvent(event: any) {
     return;
   }
 
+  // Helper to reply using replyToken when available, falling back to push message
+  const sendReply = async (text: string, quickReplyOptions?: any) => {
+    if (replyToken) {
+      console.log('[LINE] Sending reply using replyToken...');
+      await sendLineReplyMessage(replyToken, text, quickReplyOptions);
+    } else {
+      console.log('[LINE] Falling back to pushMessage...');
+      await sendLinePushMessage(lineUserId, text, quickReplyOptions);
+    }
+  };
+
   // 1. Handle Postback Events (Quick replies confirmation / cancel)
   if (event.type === 'postback') {
     const data = event.postback.data as string;
@@ -88,7 +99,7 @@ async function processLineEvent(event: any) {
         .single();
 
       if (settingsError || !settings) {
-        await sendLinePushMessage(lineUserId, '❌ บัญชี LINE ของคุณยังไม่ได้เชื่อมต่อ หรือระบบหาบัญชีไม่พบ');
+        await sendReply('❌ บัญชี LINE ของคุณยังไม่ได้เชื่อมต่อ หรือระบบหาบัญชีไม่พบ');
         return;
       }
 
@@ -109,13 +120,13 @@ async function processLineEvent(event: any) {
 
       if (error) {
         console.error('[LINE] DB insert error:', error);
-        await sendLinePushMessage(lineUserId, '❌ ไม่สามารถบันทึกรายการได้ กรุณาลองใหม่อีกครั้ง');
+        await sendReply('❌ ไม่สามารถบันทึกรายการได้ กรุณาลองใหม่อีกครั้ง');
       } else {
         console.log('[LINE] Transaction saved:', { amount, category, date: formattedDate });
-        await sendLinePushMessage(lineUserId, '✅ บันทึกรายการค่าใช้จ่ายเรียบร้อยแล้ว!');
+        await sendReply('✅ บันทึกรายการค่าใช้จ่ายเรียบร้อยแล้ว!');
       }
     } else if (data === 'cancel') {
-      await sendLinePushMessage(lineUserId, '❌ ยกเลิกรายการแล้ว');
+      await sendReply('❌ ยกเลิกรายการแล้ว');
     }
     return;
   }
@@ -130,8 +141,7 @@ async function processLineEvent(event: any) {
       console.log('[LINE] Text message from', lineUserId, ':', text.substring(0, 80));
 
       if (text.startsWith('/start')) {
-        await sendLinePushMessage(
-          lineUserId,
+        await sendReply(
           'สวัสดีครับ! ยินดีต้อนรับสู่ MyBaht / เงินฉัน 🤖\n\n' +
             'กรุณาเชื่อมต่อบัญชีของคุณด้วยคำสั่ง:\n' +
             '/link [รหัสเชื่อมต่อ 6 หลัก]\n\n' +
@@ -143,7 +153,7 @@ async function processLineEvent(event: any) {
       if (text.startsWith('/link')) {
         const code = text.split(' ')[1];
         if (!code || code.length !== 6) {
-          await sendLinePushMessage(lineUserId, '❌ รูปแบบไม่ถูกต้อง กรุณาใช้รูปแบบ /link [รหัสเชื่อมต่อ 6 หลัก]');
+          await sendReply('❌ รูปแบบไม่ถูกต้อง กรุณาใช้รูปแบบ /link [รหัสเชื่อมต่อ 6 หลัก]');
           return;
         }
 
@@ -157,7 +167,7 @@ async function processLineEvent(event: any) {
           .single();
 
         if (error || !settings) {
-          await sendLinePushMessage(lineUserId, '❌ รหัสเชื่อมต่อไม่ถูกต้อง หรือหมดอายุแล้ว กรุณาสร้างรหัสใหม่จากในแอป');
+          await sendReply('❌ รหัสเชื่อมต่อไม่ถูกต้อง หรือหมดอายุแล้ว กรุณาสร้างรหัสใหม่จากในแอป');
           return;
         }
 
@@ -172,10 +182,10 @@ async function processLineEvent(event: any) {
           .eq('user_id', settings.user_id);
 
         if (updateError) {
-          await sendLinePushMessage(lineUserId, '❌ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
+          await sendReply('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
         } else {
           console.log('[LINE] Account linked:', lineUserId, '->', settings.user_id);
-          await sendLinePushMessage(lineUserId, '🎉 เชื่อมต่อบัญชี MyBaht สำเร็จแล้ว! คุณสามารถส่งรูปภาพใบเสร็จเพื่อบันทึกรายการได้ทันที');
+          await sendReply('🎉 เชื่อมต่อบัญชี MyBaht สำเร็จแล้ว! คุณสามารถส่งรูปภาพใบเสร็จเพื่อบันทึกรายการได้ทันที');
         }
         return;
       }
@@ -188,7 +198,7 @@ async function processLineEvent(event: any) {
         .single();
 
       if (error || !settings) {
-        await sendLinePushMessage(lineUserId, '❌ บัญชี LINE ของคุณยังไม่ได้เชื่อมต่อ กรุณาพิมพ์ /link [รหัสเชื่อมต่อ] เพื่อเริ่มใช้งาน');
+        await sendReply('❌ บัญชี LINE ของคุณยังไม่ได้เชื่อมต่อ กรุณาพิมพ์ /link [รหัสเชื่อมต่อ] เพื่อเริ่มใช้งาน');
         return;
       }
 
@@ -196,7 +206,7 @@ async function processLineEvent(event: any) {
       try {
         const { ai_provider, ai_api_key_encrypted, ai_model } = settings;
         if (!ai_provider || !ai_api_key_encrypted || !ai_model) {
-          await sendLinePushMessage(lineUserId, '❌ กรุณาตั้งค่าผู้ให้บริการ AI API Key และโมเดลในแอปก่อนเริ่มต้นใช้งาน');
+          await sendReply('❌ กรุณาตั้งค่าผู้ให้บริการ AI API Key และโมเดลในแอปก่อนเริ่มต้นใช้งาน');
           return;
         }
 
@@ -223,14 +233,14 @@ async function processLineEvent(event: any) {
           parsed.note
         );
 
-        await sendLinePushMessage(lineUserId, formattedText, [
+        await sendReply(formattedText, [
           { label: '✅ บันทึกรายการ', text: 'บันทึกรายการ', data: callbackData },
           { label: '❌ ยกเลิก', text: 'ยกเลิก', data: 'cancel' }
         ]);
         console.log('[LINE] Text processed and reply sent');
       } catch (err: unknown) {
         console.error('[LINE] Text processing failed:', err);
-        await sendLinePushMessage(lineUserId, '❌ ไม่สามารถประมวลผลข้อความแจ้งเตือนนี้ได้ กรุณาตรวจสอบการตั้งค่า AI API หรือติดต่อแอดมิน');
+        await sendReply('❌ ไม่สามารถประมวลผลข้อความแจ้งเตือนนี้ได้ กรุณาตรวจสอบการตั้งค่า AI API หรือติดต่อแอดมิน');
       }
       return;
     }
@@ -247,7 +257,7 @@ async function processLineEvent(event: any) {
         .single();
 
       if (error || !settings) {
-        await sendLinePushMessage(lineUserId, '❌ บัญชี LINE ของคุณยังไม่ได้เชื่อมต่อ กรุณาพิมพ์ /link [รหัสเชื่อมต่อ] เพื่อเริ่มใช้งาน');
+        await sendReply('❌ บัญชี LINE ของคุณยังไม่ได้เชื่อมต่อ กรุณาพิมพ์ /link [รหัสเชื่อมต่อ] เพื่อเริ่มใช้งาน');
         return;
       }
 
@@ -258,7 +268,7 @@ async function processLineEvent(event: any) {
 
         const { ai_provider, ai_api_key_encrypted, ai_model } = settings;
         if (!ai_provider || !ai_api_key_encrypted || !ai_model) {
-          await sendLinePushMessage(lineUserId, '❌ กรุณาตั้งค่าผู้ให้บริการ AI API Key และโมเดลในแอปก่อนเริ่มต้นใช้งาน');
+          await sendReply('❌ กรุณาตั้งค่าผู้ให้บริการ AI API Key และโมเดลในแอปก่อนเริ่มต้นใช้งาน');
           return;
         }
 
@@ -285,20 +295,20 @@ async function processLineEvent(event: any) {
           parsed.note
         );
 
-        await sendLinePushMessage(lineUserId, formattedText, [
+        await sendReply(formattedText, [
           { label: '✅ บันทึกรายการ', text: 'บันทึกรายการ', data: callbackData },
           { label: '❌ ยกเลิก', text: 'ยกเลิก', data: 'cancel' }
         ]);
         console.log('[LINE] Slip processed and reply sent');
       } catch (err: unknown) {
         console.error('[LINE] Slip processing failed:', err);
-        await sendLinePushMessage(lineUserId, '❌ ไม่สามารถประมวลผลใบเสร็จนี้ได้ กรุณาตรวจสอบการตั้งค่า AI API หรือติดต่อแอดมิน');
+        await sendReply('❌ ไม่สามารถประมวลผลใบเสร็จนี้ได้ กรุณาตรวจสอบการตั้งค่า AI API หรือติดต่อแอดมิน');
       }
       return;
     }
 
     // Fallback response for other message types
-    await sendLinePushMessage(lineUserId, '💡 คุณสามารถส่งรูปภาพใบเสร็จหรือข้อความแจ้งเตือนโอนเงิน เพื่อทำการบันทึกค่าใช้จ่ายอัตโนมัติได้ครับ');
+    await sendReply('💡 คุณสามารถส่งรูปภาพใบเสร็จหรือข้อความแจ้งเตือนโอนเงิน เพื่อทำการบันทึกค่าใช้จ่ายอัตโนมัติได้ครับ');
   }
 }
 

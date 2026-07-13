@@ -1,15 +1,14 @@
-// Node 18+ has global fetch
+const crypto = require('crypto');
 
 async function test() {
+  const channelSecret = "90b0d0362cdc4a99ae1f9dd4fa515e74";
   const payload = {
     destination: "U8dec8ac313cd49a32388d08ffa060f6f",
     events: [
       {
-        type: "message",
-        message: {
-          type: "text",
-          id: "1234567890",
-          text: "กินข้าว 150 บาท เงินสด"
+        type: "postback",
+        postback: {
+          data: "save:150:food:ca:20250522:none:กินข้าว"
         },
         timestamp: Date.now(),
         source: {
@@ -21,13 +20,20 @@ async function test() {
     ]
   };
 
+  const bodyStr = JSON.stringify(payload);
+  const signature = crypto
+    .createHmac('SHA256', channelSecret)
+    .update(bodyStr)
+    .digest('base64');
+
   try {
     const response = await fetch('https://mybaht-smart.vercel.app/api/line/webhook', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-line-signature': signature
       },
-      body: JSON.stringify(payload)
+      body: bodyStr
     });
 
     const text = await response.text();

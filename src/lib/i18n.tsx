@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 type Language = 'th' | 'en';
 
@@ -177,14 +177,18 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('th');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('mybaht-lang') as Language | null;
-    if (saved && (saved === 'th' || saved === 'en')) {
-      setLanguageState(saved);
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'th';
+    try {
+      const saved = localStorage.getItem('mybaht-lang') as Language | null;
+      if (saved && (saved === 'th' || saved === 'en')) {
+        return saved;
+      }
+    } catch {
+      // ignore
     }
-  }, []);
+    return 'th';
+  });
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
