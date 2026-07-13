@@ -186,20 +186,32 @@ function extractJsonBlock(text: string): string {
 
 // ===== Analyze Slip =====
 
-const SLIP_ANALYSIS_PROMPT = `You are analyzing a receipt/payment slip image. Extract the following information and return ONLY valid JSON:
+export function getTodayDateInBangkok(): string {
+  const todayStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+  const [month, day, year] = todayStr.split('/');
+  return `${year}-${month}-${day}`;
+}
+
+function getSlipAnalysisPrompt(todayDate: string): string {
+  return `You are analyzing a receipt/payment slip image. Extract the following information and return ONLY valid JSON:
 {
   "amount": <number - the total amount paid>,
   "category": "<one of: food, transport, shopping, bills, entertainment, health, education, other>",
   "merchant": "<store/merchant name if visible>",
   "note": "<brief description of the transaction>",
-  "date": "<date in YYYY-MM-DD format, use today if not visible>",
+  "date": "<date in YYYY-MM-DD format, use today's date (${todayDate}) if not visible>",
   "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>"
 }
 
 Rules:
 - Extract the TOTAL/GRAND TOTAL amount, not subtotals
 - If currency is THB/Baht, use that amount directly
-- If the date is not clearly visible, use today's date
+- If the date is not clearly visible, use today's date: ${todayDate}
 - Category should match the type of purchase
 - Analyze or predict the payment method:
   * Look for credit card brands (MasterCard, Visa, JCB, etc.) or terms like "บัตรเครดิต" or masked card numbers (e.g. xxxx-xxxx-5783) -> use "credit_card".
@@ -207,6 +219,24 @@ Rules:
   * Look for wallet terms (TrueMoney, Rabbit Line Pay, ShopeePay) -> use "e_wallet".
   * If no card, bank, or wallet identifiers are visible, default to "cash".
 - Return ONLY the JSON object, no markdown, no explanation`;
+}
+
+function normalizeDate(dateStr: string, fallbackDate: string): string {
+  if (!dateStr) return fallbackDate;
+  const match = dateStr.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (match) {
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+  const parsed = Date.parse(dateStr);
+  if (!isNaN(parsed)) {
+    const d = new Date(parsed);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return fallbackDate;
+}
 
 export async function analyzeSlip(
   provider: AIProvider,
@@ -215,13 +245,15 @@ export async function analyzeSlip(
   imageBase64: string
 ): Promise<SlipAnalysisResult> {
   const config = getProviderConfig(provider);
+  const todayDate = getTodayDateInBangkok();
+  const prompt = getSlipAnalysisPrompt(todayDate);
 
   let result: string;
 
   if (provider === 'google') {
-    result = await analyzeWithGemini(apiKey, model, imageBase64);
+    result = await analyzeWithGemini(apiKey, model, imageBase64, prompt);
   } else {
-    result = await analyzeWithOpenAICompatible(config, apiKey, model, imageBase64);
+    result = await analyzeWithOpenAICompatible(config, apiKey, model, imageBase64, prompt);
   }
 
   // Parse the JSON response
@@ -234,7 +266,7 @@ export async function analyzeSlip(
       category: parsed.category || 'other',
       merchant: parsed.merchant || '',
       note: parsed.note || '',
-      date: parsed.date || new Date().toISOString().split('T')[0],
+      date: normalizeDate(parsed.date, todayDate),
       payment_method: parsed.payment_method || 'cash',
     };
   } catch (e) {
@@ -246,13 +278,14 @@ export async function analyzeSlip(
 
 // ===== Analyze SMS/Alert Text =====
 
-const TEXT_ANALYSIS_PROMPT = `You are analyzing a payment notification text, SMS, LINE Alert, or bank transaction message. Extract the following information and return ONLY valid JSON:
+function getTextAnalysisPrompt(todayDate: string): string {
+  return `You are analyzing a payment notification text, SMS, LINE Alert, or bank transaction message. Extract the following information and return ONLY valid JSON:
 {
   "amount": <number - the total amount paid>,
   "category": "<one of: food, transport, shopping, bills, entertainment, health, education, other>",
   "merchant": "<store/merchant name if found in text>",
   "note": "<brief description of the transaction>",
-  "date": "<date in YYYY-MM-DD format, use today if not visible/parseable>",
+  "date": "<date in YYYY-MM-DD format, use today's date (${todayDate}) if not visible/parseable>",
   "payment_method": "<one of: cash, bank, credit_card, e_wallet, savings>"
 }
 
@@ -260,13 +293,14 @@ Rules:
 - Extract the total transaction amount as a float/number.
 - Try to infer the merchant/shop name from context (e.g. "Starbucks", "7-Eleven", "Grab", "Shopee", bank transfers).
 - In Thailand, bank alerts from K-Plus, SCB Easy, LINE alerts, or SMS alerts are common. Extract date/time from the alert context.
-- If the date is not found or is in relative terms, use today's date in YYYY-MM-DD.
+- If the date is relative (e.g. "วันนี้", "เมื่อวาน"), calculate it relative to today's date: ${todayDate}. If the date is not found or parseable, use today's date: ${todayDate}.
 - Analyze or predict the payment method:
   * If the text mentions "บัตรเครดิต", "Credit card", "บัตร", or has a card format like "4417-70xx-xxxx-5783" -> use "credit_card".
   * If the text mentions "โอนเงิน", "เงินออก", "K-Plus", "SCB Easy", "Krungthai", "PromptPay", "โอนสำเร็จ" -> use "bank".
   * If the text mentions "TrueMoney", "TMN", "Wallet", "Rabbit" -> use "e_wallet".
   * Otherwise, predict based on context or use "cash".
 - Return ONLY the JSON object, no markdown code blocks, no explanation.`;
+}
 
 export async function analyzeText(
   provider: AIProvider,
@@ -275,13 +309,15 @@ export async function analyzeText(
   text: string
 ): Promise<SlipAnalysisResult> {
   const config = getProviderConfig(provider);
+  const todayDate = getTodayDateInBangkok();
+  const prompt = getTextAnalysisPrompt(todayDate);
 
   let result: string;
 
   if (provider === 'google') {
-    result = await analyzeTextWithGemini(apiKey, model, text);
+    result = await analyzeTextWithGemini(apiKey, model, text, prompt);
   } else {
-    result = await analyzeTextWithOpenAICompatible(config, apiKey, model, text);
+    result = await analyzeTextWithOpenAICompatible(config, apiKey, model, text, prompt);
   }
 
   // Parse the JSON response
@@ -294,7 +330,7 @@ export async function analyzeText(
       category: parsed.category || 'other',
       merchant: parsed.merchant || '',
       note: parsed.note || '',
-      date: parsed.date || new Date().toISOString().split('T')[0],
+      date: normalizeDate(parsed.date, todayDate),
       payment_method: parsed.payment_method || 'cash',
     };
   } catch (e) {
@@ -308,7 +344,8 @@ async function analyzeTextWithOpenAICompatible(
   config: AIProviderConfig,
   apiKey: string,
   model: string,
-  text: string
+  text: string,
+  prompt: string
 ): Promise<string> {
   const response = await fetch(`${config.baseUrl}/chat/completions`, {
     method: 'POST',
@@ -326,7 +363,7 @@ async function analyzeTextWithOpenAICompatible(
         {
           role: 'user',
           content: [
-            { type: 'text', text: TEXT_ANALYSIS_PROMPT },
+            { type: 'text', text: prompt },
             { type: 'text', text: `Here is the transaction text/SMS/alert: "${text}"` }
           ],
         },
@@ -348,7 +385,8 @@ async function analyzeTextWithOpenAICompatible(
 async function analyzeTextWithGemini(
   apiKey: string,
   model: string,
-  text: string
+  text: string,
+  prompt: string
 ): Promise<string> {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -359,7 +397,7 @@ async function analyzeTextWithGemini(
         contents: [
           {
             parts: [
-              { text: TEXT_ANALYSIS_PROMPT },
+              { text: prompt },
               { text: `Here is the transaction text/SMS/alert: "${text}"` }
             ],
           },
@@ -385,7 +423,8 @@ async function analyzeWithOpenAICompatible(
   config: AIProviderConfig,
   apiKey: string,
   model: string,
-  imageBase64: string
+  imageBase64: string,
+  prompt: string
 ): Promise<string> {
   const response = await fetch(`${config.baseUrl}/chat/completions`, {
     method: 'POST',
@@ -403,7 +442,7 @@ async function analyzeWithOpenAICompatible(
         {
           role: 'user',
           content: [
-            { type: 'text', text: SLIP_ANALYSIS_PROMPT },
+            { type: 'text', text: prompt },
             {
               type: 'image_url',
               image_url: {
@@ -431,7 +470,8 @@ async function analyzeWithOpenAICompatible(
 async function analyzeWithGemini(
   apiKey: string,
   model: string,
-  imageBase64: string
+  imageBase64: string,
+  prompt: string
 ): Promise<string> {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -442,7 +482,7 @@ async function analyzeWithGemini(
         contents: [
           {
             parts: [
-              { text: SLIP_ANALYSIS_PROMPT },
+              { text: prompt },
               {
                 inline_data: {
                   mime_type: 'image/jpeg',
