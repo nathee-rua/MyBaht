@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [username, setUsername] = useState('User');
   const [aiReady, setAiReady] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showScanDialog, setShowScanDialog] = useState(false);
@@ -152,8 +153,12 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const { startDate, endDate } = getDateRange();
-      const data = await getTransactions({ startDate, endDate });
-      setTransactions(data);
+      const [filteredData, allData] = await Promise.all([
+        getTransactions({ startDate, endDate }),
+        getTransactions()
+      ]);
+      setTransactions(filteredData);
+      setAllTransactions(allData);
     } catch (err) {
       console.error('Failed to fetch transactions:', err);
     } finally {
@@ -174,7 +179,19 @@ export default function DashboardPage() {
     };
   }, [fetchTransactions]);
 
+  // Sync dateFilter changes back to timeframe select option
+  useEffect(() => {
+    if (dateFilter === 'daily') {
+      setTimeframe('today');
+    } else if (dateFilter === 'weekly') {
+      setTimeframe('week');
+    } else if (dateFilter === 'monthly' || dateFilter === 'calendar') {
+      setTimeframe('month');
+    }
+  }, [dateFilter]);
+
   const handleTimeframeChange = (value: 'month' | 'week' | 'today') => {
+    setTimeframe(value);
     if (value === 'today') {
       setDateFilter('daily');
       setCurrentDate(new Date());
@@ -227,7 +244,7 @@ export default function DashboardPage() {
 
   // Helper to calculate available balance for a specific payment method
   const getAccountBalance = (accountMethod: 'all' | 'cash' | 'bank' | 'credit_card') => {
-    const acctTxs = transactions.filter((tx) => {
+    const acctTxs = allTransactions.filter((tx) => {
       if (accountMethod === 'all') return true;
       return tx.payment_method === accountMethod;
     });

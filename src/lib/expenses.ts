@@ -415,6 +415,8 @@ export async function createInvestmentRecord(record: {
   amount: number;
   price?: number | null;
   units?: number | null;
+  broker?: string | null;
+  notes?: string | null;
 }): Promise<InvestmentDbRecord> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -430,6 +432,8 @@ export async function createInvestmentRecord(record: {
       amount: record.amount,
       price: record.price || null,
       units: record.units || null,
+      broker: record.broker || null,
+      notes: record.notes || null,
     })
     .select('*, asset:investment_assets(*)')
     .single();
@@ -447,6 +451,8 @@ export async function updateInvestmentRecord(
     amount: number;
     price?: number | null;
     units?: number | null;
+    broker?: string | null;
+    notes?: string | null;
   }>
 ): Promise<InvestmentDbRecord> {
   const supabase = createClient();

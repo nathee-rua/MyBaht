@@ -62,6 +62,8 @@ export default function StatsPage() {
   const [recordAmount, setRecordAmount] = useState('');
   const [recordPrice, setRecordPrice] = useState('');
   const [recordUnits, setRecordUnits] = useState('');
+  const [recordBroker, setRecordBroker] = useState('');
+  const [recordNotes, setRecordNotes] = useState('');
 
   // Asset creation inline form (when no asset is matched in combobox)
   const [inlineAssetName, setInlineAssetName] = useState('');
@@ -512,6 +514,8 @@ export default function StatsPage() {
         amount: Number(recordAmount),
         price: recordPrice ? Number(recordPrice) : null,
         units: recordUnits ? Number(recordUnits) : null,
+        broker: recordBroker || null,
+        notes: recordNotes || null,
       });
 
       // Reset form fields
@@ -520,6 +524,8 @@ export default function StatsPage() {
       setRecordAmount('');
       setRecordPrice('');
       setRecordUnits('');
+      setRecordBroker('');
+      setRecordNotes('');
       setInlineAssetName('');
       setShowAddDbRecordForm(false);
       
@@ -1590,6 +1596,32 @@ export default function StatsPage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Broker (โบรกเกอร์) */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'โบรกเกอร์ (โบรกเกอร์)' : 'Broker'}</label>
+                    <input
+                      type="text"
+                      placeholder={language === 'th' ? 'เช่น InnovestX, Bitkub' : 'e.g. InnovestX, Bitkub'}
+                      value={recordBroker}
+                      onChange={(e) => setRecordBroker(e.target.value)}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Notes/Details (หมายเหตุ/รายละเอียด) */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-extrabold text-text-secondary uppercase">{language === 'th' ? 'รายละเอียด/หมายเหตุ' : 'Notes/Details'}</label>
+                    <input
+                      type="text"
+                      placeholder={language === 'th' ? 'เช่น DCA ประจำเดือน, ซื้อเพิ่ม' : 'e.g. Monthly DCA, Buy Dip'}
+                      value={recordNotes}
+                      onChange={(e) => setRecordNotes(e.target.value)}
+                      className="bg-bg-primary border border-border/40 rounded-lg px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex justify-end gap-2 mt-1">
                   <button
                     type="submit"
@@ -1631,9 +1663,18 @@ export default function StatsPage() {
                           'text-income-green'
                         }`}>{rec.type.toUpperCase()}</span>
                       </span>
-                      {(rec.price || rec.units) && (
-                        <span className="text-[9px] text-text-muted mt-0.5">
-                          {rec.units && `${rec.units} units`} {rec.price && `@ ฿${rec.price}`}
+                      {(rec.price || rec.units || rec.broker || rec.notes) && (
+                        <span className="text-[9px] text-text-muted mt-0.5 flex flex-col gap-0.5 font-normal">
+                          {(rec.units || rec.price) && (
+                            <span>
+                              {rec.units && `${rec.units} units`} {rec.price && `@ ฿${rec.price}`}
+                            </span>
+                          )}
+                          {(rec.broker || rec.notes) && (
+                            <span className="opacity-80">
+                              {rec.broker && `Broker: ${rec.broker}`} {rec.broker && rec.notes && ' | '}{rec.notes && `Note: ${rec.notes}`}
+                            </span>
+                          )}
                         </span>
                       )}
                     </div>

@@ -240,6 +240,8 @@ export interface InvestmentDbRecord {
   amount: number;
   price?: number | null;
   units?: number | null;
+  broker?: string | null;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
   asset?: InvestmentDbAsset; // joined details

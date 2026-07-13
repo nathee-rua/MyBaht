@@ -268,10 +268,10 @@ export default function AddTransactionDialog({
             </div>
           </div>
 
-          {/* Payment Method / Asset Picker (Horizontal Scroll chips 40px px-3) */}
+          {/* Payment Method / Asset Picker (Flex-wrap chips 40px px-3) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-bold text-text-secondary pl-1 block">{t('transaction.asset')}</label>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 px-1 scrollbar-none w-full">
+            <div className="flex flex-wrap gap-2 pb-1 px-1 w-full">
               {PAYMENT_METHODS.map((pm) => {
                 const isSelected = paymentMethod === pm.id;
                 return (
