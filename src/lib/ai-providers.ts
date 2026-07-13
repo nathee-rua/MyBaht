@@ -175,6 +175,15 @@ async function fetchGeminiModels(apiKey: string): Promise<AIModel[]> {
   return models;
 }
 
+function extractJsonBlock(text: string): string {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end >= start) {
+    return text.substring(start, end + 1);
+  }
+  return text;
+}
+
 // ===== Analyze Slip =====
 
 const SLIP_ANALYSIS_PROMPT = `You are analyzing a receipt/payment slip image. Extract the following information and return ONLY valid JSON:
@@ -216,10 +225,7 @@ export async function analyzeSlip(
   }
 
   // Parse the JSON response
-  const cleaned = result
-    .replace(/```json\s*/g, '')
-    .replace(/```\s*/g, '')
-    .trim();
+  let cleaned = extractJsonBlock(result).trim();
 
   try {
     const parsed = JSON.parse(cleaned);
@@ -231,7 +237,9 @@ export async function analyzeSlip(
       date: parsed.date || new Date().toISOString().split('T')[0],
       payment_method: parsed.payment_method || 'cash',
     };
-  } catch {
+  } catch (e) {
+    console.error('[AI Parser Error] Failed parsing JSON from raw response:', result);
+    console.error('[AI Parser Error] Attempted parsing of cleaned substring:', cleaned);
     throw new Error('Failed to parse AI response. The model did not return valid JSON.');
   }
 }
@@ -277,10 +285,7 @@ export async function analyzeText(
   }
 
   // Parse the JSON response
-  const cleaned = result
-    .replace(/```json\s*/g, '')
-    .replace(/```\s*/g, '')
-    .trim();
+  let cleaned = extractJsonBlock(result).trim();
 
   try {
     const parsed = JSON.parse(cleaned);
@@ -292,7 +297,9 @@ export async function analyzeText(
       date: parsed.date || new Date().toISOString().split('T')[0],
       payment_method: parsed.payment_method || 'cash',
     };
-  } catch {
+  } catch (e) {
+    console.error('[AI Parser Error] Failed parsing JSON from text response:', result);
+    console.error('[AI Parser Error] Attempted parsing of cleaned text substring:', cleaned);
     throw new Error('Failed to parse AI response. The model did not return valid JSON.');
   }
 }
